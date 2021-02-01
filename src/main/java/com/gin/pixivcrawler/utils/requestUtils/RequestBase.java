@@ -193,7 +193,7 @@ public interface RequestBase<T> {
         }
         int statusCode = response.getStatusLine().getStatusCode();
 
-        if (statusCode == HttpStatus.SC_OK || statusCode == 403) {
+        if (statusCode == HttpStatus.SC_OK || statusCode /100==4) {
             LOG.debug("第 {} 次请求 成功 地址: {} 耗时：{}", i, getMethod().getURI(), timeCost(start));
             return handleEntity(response.getEntity());
         } else if (statusCode == HttpStatus.SC_MOVED_TEMPORARILY) {
