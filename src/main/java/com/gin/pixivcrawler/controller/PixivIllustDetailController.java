@@ -1,14 +1,13 @@
 package com.gin.pixivcrawler.controller;
 
 import com.gin.pixivcrawler.service.PixivIllustDetailService;
-import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivIllustDetail;
+import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 

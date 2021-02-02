@@ -5,7 +5,7 @@ import com.gin.pixivcrawler.dao.PixivIllustDetailDao;
 import com.gin.pixivcrawler.utils.SpringContextUtil;
 import com.gin.pixivcrawler.utils.TasksUtil;
 import com.gin.pixivcrawler.utils.pixivUtils.PixivPost;
-import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivIllustDetail;
+import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTag;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivUser;
 import lombok.extern.slf4j.Slf4j;

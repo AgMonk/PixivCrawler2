@@ -1,23 +1,22 @@
-package com.gin.pixivcrawler.utils.pixivUtils.entity;
+package com.gin.pixivcrawler.utils.pixivUtils.entity.details;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.gin.pixivcrawler.utils.TimeUtil;
+import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTag;
+import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTagsInDetail;
+import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivUrls;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.gin.pixivcrawler.utils.TimeUtil.ZONE_ID;
 
 /**
  * Pixiv作品详情
@@ -25,12 +24,12 @@ import static com.gin.pixivcrawler.utils.TimeUtil.ZONE_ID;
  * @author bx002
  * @date 2021/2/2 9:25
  */
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @Data
 @TableName("t_illust_detail")
-public class PixivIllustDetail implements Serializable {
+public class PixivIllustDetail extends PixivDetailBase implements Serializable {
     public final static String DOMAIN = "https://i.pximg.net";
-
 
     /**
      * 插画
@@ -52,61 +51,11 @@ public class PixivIllustDetail implements Serializable {
      */
     Integer bookmarkCount;
     /**
-     * 收藏数据
-     */
-    @TableField(exist = false)
-    @JSONField(serialize = false)
-    HashMap<String, String> bookmarkData;
-
-    Integer bookmarked;
-    /**
-     * 创建时间
-     */
-    @TableField(exist = false)
-    @JSONField(serialize = false)
-    String createDate;
-    /**
-     * 创建时间(秒)
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    Long createSeconds;
-    /**
-     * 作品高度
-     */
-    @TableField(exist = false)
-    Integer height;
-    /**
-     * 作品id
-     */
-    @TableId
-    @JSONField(alternateNames = {"id", "illustId"})
-    Long id;
-    /**
-     * 作品标题
-     */
-    @JSONField(alternateNames = {"illustTitle", "title"})
-    String illustTitle;
-    /**
-     * 作品类型
-     */
-    Integer illustType;
-    /**
      * 赞数
      */
     @TableField(exist = false)
     Integer likeCount;
-    /**
-     * 上传时间
-     */
-    @TableField(exist = false)
-    @JSONField(serialize = false)
-    @JsonIgnore
-    String uploadDate;
-    /**
-     * 作品页数
-     */
-    Integer pageCount;
+
     /**
      * 详情中的tags
      */
@@ -118,6 +67,13 @@ public class PixivIllustDetail implements Serializable {
     String tagString;
     @TableField(exist = false)
     String tagTransString;
+    /**
+     * 上传时间
+     */
+    @TableField(exist = false)
+    @JSONField(serialize = false)
+    @JsonIgnore
+    String uploadDate;
     /**
      * 上传时间(秒)
      */
@@ -140,38 +96,16 @@ public class PixivIllustDetail implements Serializable {
     @TableField(exist = false)
     String userAccount;
     /**
-     * 作者用户id
-     */
-    Long userId;
-    /**
-     * 作者昵称
-     */
-    @TableField(exist = false)
-    String userName;
-    /**
      * 浏览数
      */
     @TableField(exist = false)
     Long viewCount;
     /**
-     * 作品宽度
-     */
-    @TableField(exist = false)
-    Integer width;
-    /**
      * 检查时间
      */
-
     @JsonIgnore
     @JSONField(serialize = false)
     Long checkSeconds;
-
-    public void setBookmarkData(HashMap<String, String> bookmarkData) {
-        this.bookmarkData = bookmarkData;
-        if (bookmarkData != null) {
-            this.bookmarked = 1;
-        }
-    }
 
     public void setTagsInDetail(PixivTagsInDetail tagsInDetail) {
         this.tagsInDetail = tagsInDetail;
@@ -203,29 +137,17 @@ public class PixivIllustDetail implements Serializable {
         this.checkSeconds = System.currentTimeMillis() / 1000;
     }
 
-    public String getCreateDateTime() {
-        return TimeUtil.second2String(createSeconds);
-    }
-
-    public String getCheckDateTime() {
-        return checkSeconds != null ? TimeUtil.second2String(checkSeconds) : null;
-    }
-
     public String getUploadDateTime() {
         return TimeUtil.second2String(uploadSeconds);
     }
 
-    public void setCreateDate(String createDate) {
-        this.createDate = createDate;
-        this.createSeconds = getEpochSecond(createDate);
-    }
 
     public void setUploadDate(String uploadDate) {
         this.uploadDate = uploadDate;
         this.uploadSeconds = getEpochSecond(uploadDate);
     }
-
-    private static long getEpochSecond(String date) {
-        return ZonedDateTime.parse(date).withZoneSameInstant(ZONE_ID).toInstant().getEpochSecond();
+    public String getCheckDateTime() {
+        return checkSeconds != null ? TimeUtil.second2String(checkSeconds) : null;
     }
+
 }

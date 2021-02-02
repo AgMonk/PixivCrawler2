@@ -1,15 +1,15 @@
 package com.gin.pixivcrawler.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
+import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivCookie;
 import org.apache.ibatis.annotations.CacheNamespace;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author bx002
- * @date 2021/2/2 13:17
+ * @date 2021/2/2 16:57
  */
 @Repository
 @CacheNamespace
-public interface PixivIllustDetailDao extends BaseMapper<PixivIllustDetail> {
+public interface PixivCookieDao extends BaseMapper<PixivCookie> {
 }
