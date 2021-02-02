@@ -66,7 +66,7 @@ public interface RequestBase<T> {
      * @return 秒
      */
     default int getTimeout() {
-        return 15;
+        return 10;
     }
 
     /**

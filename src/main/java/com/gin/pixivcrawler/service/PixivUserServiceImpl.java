@@ -23,6 +23,11 @@ public class PixivUserServiceImpl extends ServiceImpl<PixivUserDao,PixivUser> im
     }
 
     @Override
+    public boolean saveList(Collection<PixivUser> entities) {
+        return saveBatch(entities);
+    }
+
+    @Override
     public PixivUser findOne(Serializable id) {
         return getById(id);
     }
