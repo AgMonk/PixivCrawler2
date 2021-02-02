@@ -19,6 +19,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.SocketTimeoutException;
 import java.net.URLEncoder;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -65,7 +66,7 @@ public interface RequestBase<T> {
      * @return 秒
      */
     default int getTimeout() {
-        return 10;
+        return 15;
     }
 
     /**
@@ -140,6 +141,9 @@ public interface RequestBase<T> {
                 LOG.debug("Header {} -> {}", k, v);
             });
         }
+        getMethod().addHeader(HttpHeaders.ACCEPT_LANGUAGE, "zh-CN,zh;q=0.9");
+
+
         //尝试请求
         long start = System.currentTimeMillis();
         Object result = null;
@@ -149,18 +153,19 @@ public interface RequestBase<T> {
                 if (!(result instanceof Integer)) {
                     LOG.debug("请求成功 总尝试次数 {} 地址：{} 总耗时: {}", i, getMethod().getURI(), timeCost(start));
                     return result;
-                } else {
-                    int statusCode = (int) result;
-                    //500开头的错误则等待5秒继续请求
-                    if (statusCode / 100 == 5) {
-                        try {
-                            Thread.sleep(5000);
-                        } catch (InterruptedException ignored) {
-                        }
-                    } else {
-                        break;
-                    }
+//                } else {
+//                    int statusCode = (int) result;
+//                    //500开头的错误则等待5秒继续请求
+//                    if (statusCode / 100 == 5) {
+//                        try {
+//                            Thread.sleep(5000);
+//                        } catch (InterruptedException ignored) {
+//                        }
+//                    } else {
+//                        break;
+//                    }
                 }
+                break;
             }
         }
 //        LOG.error("请求行 {}", getMethod().getRequestLine());

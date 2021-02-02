@@ -1,6 +1,7 @@
 package com.gin.pixivcrawler.utils.pixivUtils;
 
 import com.alibaba.fastjson.JSONObject;
+import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivIllustDetail;
 import com.gin.pixivcrawler.utils.requestUtils.GetRequest;
 
 import static com.gin.pixivcrawler.utils.JsonUtil.printJson;
@@ -20,15 +21,29 @@ public class PixivPost {
     private final static String URL_ILLUST_DETAIL = "https://www.pixiv.net/ajax/illust/%d";
 
 
-    public static String getIllustDetail(long pid,String cookie){
-        return GetRequest.create().addCookie(cookie).get(String.format(URL_ILLUST_DETAIL,pid));
+    public static PixivIllustDetail getIllustDetail(long pid,String cookie){
+        String result = GetRequest.create().addCookie(cookie).get(String.format(URL_ILLUST_DETAIL, pid));
+        PixivIllustDetail body = null;
+        try {
+            body = getBody(result, PixivIllustDetail.class);
+        } catch (RuntimeException e) {
+            LOG.warn("pid = {} {}",pid,e.getMessage());
+        }
+        return body;
+    }
+
+    private static <T> T getBody(String result, Class<T> clazz){
+        JSONObject json = JSONObject.parseObject(result);
+        if (!json.getBoolean("error")) {
+            return JSONObject.parseObject(json.getJSONObject("body").toJSONString(),clazz);
+        }
+        throw new  RuntimeException(json.getString("message"));
     }
 
 
     public static void main(String[] args) {
 //        long pid = 87460135;
-        long pid = 874601350;
-        String detail = getIllustDetail(pid, null);
-        printJson(JSONObject.parse(detail));
+        printJson(getIllustDetail(87460135, null));
+        printJson(getIllustDetail(87475198, null));
     }
 }

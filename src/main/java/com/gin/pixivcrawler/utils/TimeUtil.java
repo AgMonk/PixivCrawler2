@@ -157,4 +157,10 @@ public class TimeUtil {
         LocalTime endTime = LocalTime.of(23, 59, 59);
         return endDate.toEpochSecond(endTime, ZoneOffset.ofHours(8));
     }
+
+    public static void main(String[] args) {
+        String s = "2021-02-01T08:50:19+00:00";
+        ZonedDateTime zonedDateTime = ZonedDateTime.parse(s);
+        System.out.println(zonedDateTime.withZoneSameInstant(ZONE_ID));
+    }
 }
