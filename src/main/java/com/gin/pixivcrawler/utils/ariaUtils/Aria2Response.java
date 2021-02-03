@@ -4,7 +4,6 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * 响应对象
@@ -17,5 +16,4 @@ public class Aria2Response implements Serializable {
     String id;
     String jsonrpc;
     HashMap<String, String> error;
-    List<Aria2Quest> result;
 }
