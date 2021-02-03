@@ -16,6 +16,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -29,6 +30,8 @@ import java.util.stream.Collectors;
 @Data
 @TableName("t_illust_detail")
 public class PixivIllustDetail extends PixivDetailBase implements Serializable {
+    public final static Pattern PIXIV_ILLUST_FULL_NAME = Pattern.compile("\\d+_p\\d+");
+
     public final static String DOMAIN = "https://i.pximg.net";
 
     /**
@@ -146,6 +149,7 @@ public class PixivIllustDetail extends PixivDetailBase implements Serializable {
         this.uploadDate = uploadDate;
         this.uploadSeconds = getEpochSecond(uploadDate);
     }
+
     public String getCheckDateTime() {
         return checkSeconds != null ? TimeUtil.second2String(checkSeconds) : null;
     }

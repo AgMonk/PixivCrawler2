@@ -50,7 +50,18 @@ public class PixivPost {
         return body;
     }
 
-
+    /**
+     * 获取用户收藏列表
+     *
+     * @param cookie cookie
+     * @param userId 用户id
+     * @param offset offset
+     * @param limit  limit
+     * @param tag    标签
+     * @return com.gin.pixivcrawler.utils.pixivUtils.entity.PixivBookmarks
+     * @author bx002
+     * @date 2021/2/3 15:19
+     */
     public static PixivBookmarks getBookmarks(String cookie, long userId, int offset, int limit, String tag) {
         String msg = "请求收藏作品 userID = {} tag = {} offset = {} limit = {}";
         long start = System.currentTimeMillis();

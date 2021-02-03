@@ -3,11 +3,10 @@ package com.gin.pixivcrawler.service;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.gin.pixivcrawler.dao.PixivIllustDetailDao;
 import com.gin.pixivcrawler.utils.SpringContextUtil;
-import com.gin.pixivcrawler.utils.TasksUtil;
 import com.gin.pixivcrawler.utils.pixivUtils.PixivPost;
-import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTag;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivUser;
+import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
@@ -25,7 +24,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
+
 
 /**
  * @author bx002
@@ -33,7 +32,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
-@Transactional(rollbackFor = Exception.class,isolation = Isolation.READ_COMMITTED)
+@Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
 public class PixivIllustDetailServiceImpl extends ServiceImpl<PixivIllustDetailDao, PixivIllustDetail> implements PixivIllustDetailService {
     private final static long EXPIRED = 60 * 60 * 24 * 15;
     private final HashMap<Long, PixivIllustDetail> detailCache = new HashMap<>();
