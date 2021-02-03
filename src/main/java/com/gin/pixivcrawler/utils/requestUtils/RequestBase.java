@@ -66,7 +66,7 @@ public interface RequestBase<T> {
      * @return 秒
      */
     default int getTimeout() {
-        return 10;
+        return 15;
     }
 
     /**
@@ -205,7 +205,7 @@ public interface RequestBase<T> {
             Header location = response.getFirstHeader("Location");
             LOG.warn("第 {} 次请求 被重定向到 {}", i, location);
         } else {
-            LOG.warn("第 {} 次请求失败 地址:{} code: {}", i, getMethod().getURI(), statusCode);
+            LOG.warn("第 {} 次请求失败 code: {} 地址:{} ", i, statusCode, getMethod().getURI());
         }
         return statusCode;
     }

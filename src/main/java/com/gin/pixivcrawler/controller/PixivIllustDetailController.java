@@ -25,8 +25,8 @@ public class PixivIllustDetailController {
     }
 
     @RequestMapping("getDetail")
-    public PixivIllustDetail getDetail(Long pid) throws ExecutionException, InterruptedException, TimeoutException {
-        return pixivIllustDetailService.findOne(pid);
+    public PixivIllustDetail getDetail(Long pid) throws ExecutionException, InterruptedException {
+        return pixivIllustDetailService.getDetail(pid).get();
     }
 
     @RequestMapping("getDetails")

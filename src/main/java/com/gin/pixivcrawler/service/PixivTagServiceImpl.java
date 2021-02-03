@@ -5,10 +5,13 @@ import com.gin.pixivcrawler.dao.PixivTagDao;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author bx002
@@ -16,9 +19,12 @@ import java.util.List;
  */
 @Service
 @Slf4j
+@Transactional(rollbackFor = Exception.class,isolation = Isolation.READ_COMMITTED)
 public class PixivTagServiceImpl extends ServiceImpl<PixivTagDao,PixivTag> implements PixivTagService {
     @Override
     public boolean saveList(Collection<PixivTag> entities) {
+        List<PixivTag> oldTags = listByIds(entities.stream().map(PixivTag::getTag).collect(Collectors.toList()));
+        entities.removeAll(oldTags);
         return saveBatch(entities);
     }
 

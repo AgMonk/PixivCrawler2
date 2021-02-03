@@ -1,5 +1,6 @@
 package com.gin.pixivcrawler.utils.pixivUtils.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetailInBookmarks;
 import lombok.Data;
 
@@ -15,5 +16,6 @@ import java.util.List;
 @Data
 public class PixivBookmarks implements Serializable {
     Integer total;
-    List<PixivIllustDetailInBookmarks> works;
+    @JSONField(name = "works")
+    List<PixivIllustDetailInBookmarks> details;
 }

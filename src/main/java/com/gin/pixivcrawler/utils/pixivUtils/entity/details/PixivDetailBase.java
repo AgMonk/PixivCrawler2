@@ -60,6 +60,7 @@ public class PixivDetailBase implements Serializable {
      */
     @TableField(exist = false)
     @JSONField(serialize = false)
+    @JsonIgnore
     String createDate;
     /**
      * 创建时间(秒)
@@ -96,7 +97,6 @@ public class PixivDetailBase implements Serializable {
     public String getCreateDateTime() {
         return TimeUtil.second2String(createSeconds);
     }
-
 
 
     static long getEpochSecond(String date) {
