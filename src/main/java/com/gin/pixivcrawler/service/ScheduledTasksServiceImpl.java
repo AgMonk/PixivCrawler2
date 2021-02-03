@@ -40,6 +40,12 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         this.downloadQueryService = downloadQueryService;
     }
 
+    /**
+     * 请求未分类作品，添加TAG，添加到下载队列
+     *
+     * @author bx002
+     * @date 2021/2/3 17:21
+     */
     @Override
     public void downloadUntagged() throws InterruptedException, ExecutionException, TimeoutException {
         int userId = 57680761;
@@ -58,6 +64,10 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
             for (String url : detail.getUrlList()) {
                 Matcher matcher = PIXIV_ILLUST_FULL_NAME.matcher(url);
                 if (matcher.find()) {
+                    /*todo 添加tag*/
+                    
+
+//                    添加下载队列
                     String uuid = matcher.group();
                     String path = "D:/illust";
                     String fileName = url.substring(url.lastIndexOf("/") + 1);

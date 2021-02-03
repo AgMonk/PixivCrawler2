@@ -15,4 +15,5 @@ public class PixivCookie implements Serializable {
     Integer id;
     Long userId;
     String cookie;
+    String tt;
 }

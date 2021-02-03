@@ -12,8 +12,18 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @Configuration
 public class TaskExecutorConfig {
     @Bean
-    public ThreadPoolTaskExecutor detailExecutor(){ return TasksUtil.getExecutor("detail", 10); }
+    public ThreadPoolTaskExecutor detailExecutor() {
+        return TasksUtil.getExecutor("detail", 10);
+    }
+
     @Bean
-    public ThreadPoolTaskExecutor bookmarksExecutor(){ return TasksUtil.getExecutor("bookmarks", 3); }
+    public ThreadPoolTaskExecutor bookmarksExecutor() {
+        return TasksUtil.getExecutor("bookmarks", 3);
+    }
+
+    @Bean
+    public ThreadPoolTaskExecutor tagExecutor() {
+        return TasksUtil.getExecutor("tag", 1);
+    }
 
 }

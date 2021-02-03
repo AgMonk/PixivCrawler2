@@ -87,12 +87,14 @@ public class Aria2Request {
 
 
     public static void main(String[] args) {
-        Aria2UriOption option = new Aria2UriOption();
-        option.setDir("D:/").setFileName(null).setHttpsProxy("http://127.0.0.1:10809/");
-        JsonUtil.printJson(option);
-        String uri = "https://i.pximg.net/img-original/img/2021/02/03/10/09/40/87499432_p1.png";
-        Aria2ResponseMessage responseMessage = addUri(uri, option);
-        JsonUtil.printJson(responseMessage);
+//        Aria2UriOption option = new Aria2UriOption();
+//        option.setDir("D:/").setFileName(null).setHttpsProxy("http://127.0.0.1:10809/");
+//        JsonUtil.printJson(option);
+//        String uri = "https://i.pximg.net/img-original/img/2021/02/03/10/09/40/87499432_p1.png";
+//        Aria2ResponseMessage responseMessage = addUri(uri, option);
+//        JsonUtil.printJson(responseMessage);
+
+        JsonUtil.printJson(tellStopped());
     }
 
 

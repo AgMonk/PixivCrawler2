@@ -5,6 +5,7 @@ import com.gin.pixivcrawler.utils.JsonUtil;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivBookmarks;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
 import com.gin.pixivcrawler.utils.requestUtils.GetRequest;
+import com.gin.pixivcrawler.utils.requestUtils.PostRequest;
 import com.gin.pixivcrawler.utils.requestUtils.RequestBase;
 
 import static com.gin.pixivcrawler.utils.JsonUtil.printJson;
@@ -23,6 +24,8 @@ public class PixivPost {
      */
     private final static String URL_ILLUST_DETAIL = "https://www.pixiv.net/ajax/illust/%d";
     private final static String URL_USER_BOOKMARKS = "https://www.pixiv.net/ajax/user/%d/illusts/bookmarks";
+    private final static String URL_TAG_ADD = "https://www.pixiv.net/bookmark_add.php?id=";
+
     public static final String TIME_COST = " 完成 耗时:{}";
 
 
@@ -81,6 +84,39 @@ public class PixivPost {
         }
         LOG.info(msg + TIME_COST, userId, tag, offset, limit, RequestBase.timeCost(start));
         return body;
+    }
+
+    /**
+     * 给作品添加tag
+     *
+     * @param pid    pid
+     * @param cookie cookie
+     * @param tt     tt
+     * @param tags   tags
+     * @author bx002
+     * @date 2021/2/3 17:38
+     */
+    public static void addTags(Long pid, String cookie, String tt, String tags) {
+        tags = tags.replace(",", " ");
+        LOG.info("给作品添加tag {} -> {}", pid, tags);
+        PostRequest.create()
+                .setMaxTimes(1)
+                .setTimeout(3)
+                .addCookie(cookie)
+                .addEntityString("tt", tt)
+                .addEntityString("id", String.valueOf(pid))
+                .addEntityString("tag", tags)
+                .addEntityString("mode", "add")
+                .addEntityString("type", "illust")
+                .addEntityString("from_sid", "")
+                .addEntityString("original_tag", "")
+                .addEntityString("original_untagged", "0")
+                .addEntityString("original_p", "1")
+                .addEntityString("original_rest", "")
+                .addEntityString("original_order", "")
+                .addEntityString("comment", "")
+                .addEntityString("restrict", "0")
+                .post(URL_TAG_ADD + pid);
     }
 
 

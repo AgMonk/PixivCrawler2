@@ -1,5 +1,6 @@
 package com.gin.pixivcrawler.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.gin.pixivcrawler.dao.DownloadQueryDao;
 import com.gin.pixivcrawler.entity.taskQuery.DownloadQuery;
@@ -19,7 +20,9 @@ import java.util.List;
 @Service
 @Slf4j
 @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
+
 public class DownloadQueryServiceImpl extends ServiceImpl<DownloadQueryDao, DownloadQuery> implements DownloadQueryService {
+
     @Override
     public boolean saveOne(DownloadQuery entity) {
         return save(entity);
@@ -43,5 +46,12 @@ public class DownloadQueryServiceImpl extends ServiceImpl<DownloadQueryDao, Down
     @Override
     public boolean updateOne(DownloadQuery entity) {
         return updateById(entity);
+    }
+
+    @Override
+    public boolean deleteByUrl(String url) {
+        QueryWrapper<DownloadQuery> qw = new QueryWrapper<>();
+        qw.eq("url", url);
+        return remove(qw);
     }
 }

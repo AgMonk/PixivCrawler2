@@ -9,5 +9,6 @@ import com.gin.pixivcrawler.service.base.BaseService;
  */
 public interface DownloadQueryService extends BaseService<DownloadQuery> {
 
+    boolean deleteByUrl(String url);
 
 }

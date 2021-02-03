@@ -1,5 +1,7 @@
 package com.gin.pixivcrawler.utils.ariaUtils;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -19,4 +21,10 @@ public class Aria2Quest implements Serializable {
     String status;
     Integer errorCode;
     List<Aria2File> files;
+
+    @JSONField(serialize = false)
+    @JsonIgnore
+    public boolean isCompleted() {
+        return errorCode == 0 && completedLength.equals(totalLength) && "complete".equals(status);
+    }
 }
