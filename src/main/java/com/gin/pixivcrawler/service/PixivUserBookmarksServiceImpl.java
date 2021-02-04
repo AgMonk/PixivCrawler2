@@ -20,7 +20,7 @@ import java.util.concurrent.Future;
  */
 @Service
 @Slf4j
-@Transactional(rollbackFor = Exception.class,isolation = Isolation.READ_COMMITTED)
+@Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
 public class PixivUserBookmarksServiceImpl implements PixivUserBookmarksService {
     private final PixivCookieDao pixivCookieDao;
 
@@ -32,8 +32,8 @@ public class PixivUserBookmarksServiceImpl implements PixivUserBookmarksService 
     @Override
     public Future<PixivBookmarks> get(long userId, String tag, int offset, int limit) {
         QueryWrapper<PixivCookie> qw = new QueryWrapper<>();
-        qw.eq("user_id",userId);
+        qw.eq("user_id", userId);
         PixivCookie pixivCookie = pixivCookieDao.selectOne(qw);
-        return AsyncResult.forValue(PixivPost.getBookmarks(pixivCookie.getCookie(),pixivCookie.getUserId(),offset,limit,tag));
+        return AsyncResult.forValue(PixivPost.getBookmarks(pixivCookie.getCookie(), pixivCookie.getUserId(), offset, limit, tag));
     }
 }

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.gin.pixivcrawler.dao.PixivCookieDao;
 import com.gin.pixivcrawler.dao.PixivTagDao;
+import com.gin.pixivcrawler.utils.pixivUtils.PixivPost;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivCookie;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTag;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
@@ -73,7 +74,7 @@ public class PixivTagServiceImpl extends ServiceImpl<PixivTagDao, PixivTag> impl
         log.info("为作品 pid = {} 添加Tag ：{}", detail.getId(), tagTranslatedString);
 
         PixivCookie pixivCookie = pixivCookieDao.selectOne(qw);
-//        PixivPost.addTags(detail.getId(), pixivCookie.getCookie(), pixivCookie.getTt(), tagTranslatedString);
+        PixivPost.addTags(detail.getId(), pixivCookie.getCookie(), pixivCookie.getTt(), tagTranslatedString);
     }
 
 

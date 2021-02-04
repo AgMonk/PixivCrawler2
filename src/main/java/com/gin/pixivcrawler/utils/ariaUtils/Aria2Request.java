@@ -69,7 +69,7 @@ public class Aria2Request {
                 .addParam(option)
                 .send(Aria2ResponseMessage.class);
         if (message.getError() == null) {
-            log.info("成功添加任务 {}", option.getFileName());
+            log.debug("成功添加任务 {}", option.getFileName());
         }
         return message;
     }

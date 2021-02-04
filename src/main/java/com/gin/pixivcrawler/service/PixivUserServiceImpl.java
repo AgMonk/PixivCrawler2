@@ -18,8 +18,8 @@ import java.util.List;
  */
 @Service
 @Slf4j
-@Transactional(rollbackFor = Exception.class,isolation = Isolation.READ_COMMITTED)
-public class PixivUserServiceImpl extends ServiceImpl<PixivUserDao,PixivUser> implements PixivUserService {
+@Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
+public class PixivUserServiceImpl extends ServiceImpl<PixivUserDao, PixivUser> implements PixivUserService {
     @Override
     public boolean saveOne(PixivUser entity) {
         return saveOrUpdate(entity);

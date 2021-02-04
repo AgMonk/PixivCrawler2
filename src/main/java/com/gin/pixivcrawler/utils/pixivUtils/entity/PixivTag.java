@@ -10,7 +10,6 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.Objects;
 
 /**
  * Pixiv标签
@@ -64,7 +63,7 @@ public class PixivTag implements Serializable {
 
         PixivTag pixivTag = (PixivTag) o;
 
-        return Objects.equals(tag, pixivTag.tag);
+        return tag.equalsIgnoreCase(pixivTag.tag);
     }
 
     @Override

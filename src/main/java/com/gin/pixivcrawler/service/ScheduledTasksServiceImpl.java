@@ -32,6 +32,7 @@ import static com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDe
 @Slf4j
 @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
 public class ScheduledTasksServiceImpl implements ScheduledTasksService {
+    public static final int ARIA_2_QUERY_MAX_COUNT = 30;
     private final PixivIllustDetailService pixivIllustDetailService;
     private final PixivUserBookmarksService pixivUserBookmarksService;
     private final PixivTagService pixivTagService;
@@ -103,21 +104,24 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
 
     @Scheduled(cron = "0/30 * * * * ?")
     public void addDownloadQuery2Aria2() {
-//        获取完成任务
-        List<Aria2Quest> questList = tellStopped().getResult().stream()
-                .filter(Aria2Quest::isCompleted)
+//        获取停止任务
+        List<Aria2Quest> stoppedQuest = tellStopped().getResult().stream()
                 .filter(quest -> PIXIV_ILLUST_FULL_NAME.matcher(quest.getFiles().get(0).getUris().get(0).getUri()).find()).collect(Collectors.toList());
-        List<String> urlList = questList.stream()
+        //        完成Url
+        List<String> completedUrlList = stoppedQuest.stream()
+                .filter(Aria2Quest::isCompleted)
                 .map(quest -> quest.getFiles().get(0).getUris().get(0).getUri())
                 .collect(Collectors.toList());
-        List<String> gidList = questList.stream().map(Aria2Quest::getGid).collect(Collectors.toList());
+//        停止gid
+        List<String> gidList = stoppedQuest.stream().map(Aria2Quest::getGid).collect(Collectors.toList());
 //        移除完成任务
-        if (questList.size() > 0) {
+        if (stoppedQuest.size() > 0) {
+//            移除所有停止任务
             for (String gid : gidList) {
                 removeDownloadResult(gid);
             }
-            if (downloadQueryService.deleteByUrl(urlList)) {
-                log.info("从数据库移除 {} 个已完成任务", urlList.size());
+            if (completedUrlList.size() > 0 && downloadQueryService.deleteByUrl(completedUrlList)) {
+                log.info("从数据库移除 {} 个已完成任务", completedUrlList.size());
             }
         }
 //        获取当前正在进行的任务数量
@@ -126,10 +130,17 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         List<Aria2Quest> questsInQuery = new ArrayList<>();
         questsInQuery.addAll(activeQuests);
         questsInQuery.addAll(waitingQuests);
-        int limit = 30 - activeQuests.size() - waitingQuests.size();
+        int limit = ARIA_2_QUERY_MAX_COUNT - activeQuests.size() - waitingQuests.size();
 //        添加新任务
+        if (limit <= 0) {
+            return;
+        }
         List<DownloadQuery> sortedList = downloadQueryService.findSortedList(limit,
                 questsInQuery.stream().map(quest -> quest.getFiles().get(0).getUris().get(0).getUri()).collect(Collectors.toList()));
+        if (sortedList.size() == 0) {
+            return;
+        }
+        int count = 0;
         for (DownloadQuery downloadQuery : sortedList) {
             Aria2UriOption option = new Aria2UriOption();
             option.setDir(downloadQuery.getPath())
@@ -137,8 +148,11 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                     .setReferer("*")
                     .setHttpsProxy("http://127.0.0.1:10809/")
             ;
-            addUri(downloadQuery.getUrl(), option);
+            if (addUri(downloadQuery.getUrl(), option).getError() == null) {
+                count++;
+            }
         }
+        log.info("添加 {} 个下载任务到 Aria2", count);
 
     }
 }
