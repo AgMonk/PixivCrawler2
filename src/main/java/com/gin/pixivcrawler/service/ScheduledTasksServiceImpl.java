@@ -1,18 +1,27 @@
 package com.gin.pixivcrawler.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.gin.pixivcrawler.dao.PixivCookieDao;
+import com.gin.pixivcrawler.entity.taskQuery.AddTagQuery;
 import com.gin.pixivcrawler.entity.taskQuery.DownloadQuery;
+import com.gin.pixivcrawler.service.queryService.AddTagQueryService;
+import com.gin.pixivcrawler.service.queryService.DownloadQueryService;
 import com.gin.pixivcrawler.utils.ariaUtils.Aria2Quest;
 import com.gin.pixivcrawler.utils.ariaUtils.Aria2UriOption;
+import com.gin.pixivcrawler.utils.pixivUtils.PixivPost;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivBookmarks;
+import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivCookie;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivDetailBase;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -37,15 +46,26 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     private final PixivUserBookmarksService pixivUserBookmarksService;
     private final PixivTagService pixivTagService;
     private final DownloadQueryService downloadQueryService;
+    private final AddTagQueryService addTagQueryService;
+
+    private final HashMap<Long, AddTagQuery> addTagQueryMap = new HashMap<>();
+
+    private final ThreadPoolTaskExecutor tagExecutor;
+    private final PixivCookieDao pixivCookieDao;
+
 
     public ScheduledTasksServiceImpl(PixivIllustDetailService pixivIllustDetailService,
                                      PixivUserBookmarksService pixivUserBookmarksService,
-                                     PixivTagService pixivTagService, DownloadQueryService downloadQueryService) {
+                                     PixivTagService pixivTagService, DownloadQueryService downloadQueryService, AddTagQueryService addTagQueryService, ThreadPoolTaskExecutor tagExecutor, PixivCookieDao pixivCookieDao) {
         this.pixivIllustDetailService = pixivIllustDetailService;
         this.pixivUserBookmarksService = pixivUserBookmarksService;
         this.pixivTagService = pixivTagService;
         this.downloadQueryService = downloadQueryService;
+        this.addTagQueryService = addTagQueryService;
+        this.tagExecutor = tagExecutor;
+        this.pixivCookieDao = pixivCookieDao;
     }
+
 
     /**
      * 请求未分类作品，添加TAG，添加到下载队列
@@ -69,6 +89,8 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         Integer total = bookmarks.getTotal();
         log.info("用户 userID = {} 收藏中 tag:{} 下总计有作品 {} 个", userId, tag, total);
         List<Long> pidList = bookmarks.getDetails().stream().map(PixivDetailBase::getId).collect(Collectors.toList());
+//        在添加tag队列里的pid不进行请求
+        pidList.removeAll(addTagQueryMap.keySet());
 //      总数量大于请求总上限 请求更多
         if (total >= totalLimit) {
             List<Future<PixivBookmarks>> tasksFuture = new ArrayList<>();
@@ -85,12 +107,12 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         pidList.forEach(pid -> tasks.add(pixivIllustDetailService.getDetail(pid)));
         for (Future<PixivIllustDetail> task : tasks) {
             PixivIllustDetail detail = task.get(60, TimeUnit.SECONDS);
+//          添加tag
+            pixivTagService.addTag(detail, userId);
+//          添加下载队列
             for (String url : detail.getUrlList()) {
                 Matcher matcher = PIXIV_ILLUST_FULL_NAME.matcher(url);
                 if (matcher.find()) {
-//                    添加tag
-                    pixivTagService.addTag(detail, userId);
-//                    添加下载队列
                     String uuid = matcher.group();
                     String path = "f:/illust/未分类/";
                     String fileName = url.substring(url.lastIndexOf("/") + 1);
@@ -102,6 +124,12 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         }
     }
 
+    /**
+     * 下载文件
+     *
+     * @author bx002
+     * @date 2021/2/4 16:37
+     */
     @Scheduled(cron = "0/30 * * * * ?")
     public void addDownloadQuery2Aria2() {
 //        获取停止任务
@@ -153,6 +181,40 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
             }
         }
         log.info("添加 {} 个下载任务到 Aria2", count);
+
+    }
+
+    /**
+     * 添加tag
+     *
+     * @author bx002
+     * @date 2021/2/4 16:37
+     */
+    @Scheduled(cron = "0/5 * * * * ?")
+    public void addTag() {
+//      同步任务
+        List<AddTagQuery> newTasks = addTagQueryService.findAllNotIn(addTagQueryMap.keySet());
+        newTasks.forEach(query -> addTagQueryMap.put(query.getPid(), query));
+
+        int size = addTagQueryMap.size();
+        if (size == 0) {
+            return;
+        }
+        log.info("当前添加tag的队列长度为：{}", size);
+//        执行任务
+        newTasks.forEach(query -> {
+            Long pid = query.getPid();
+            tagExecutor.execute(() -> {
+                QueryWrapper<PixivCookie> qw = new QueryWrapper<>();
+                qw.eq("user_id", query.getUserId());
+                PixivCookie pixivCookie = pixivCookieDao.selectOne(qw);
+                PixivPost.addTags(pid, pixivCookie.getCookie(), pixivCookie.getTt(), query.getTag());
+                if (addTagQueryService.delete(pid)) {
+                    addTagQueryMap.remove(pid);
+                }
+                log.info("当前添加tag的队列长度为：{}", addTagQueryMap.size());
+            });
+        });
 
     }
 }

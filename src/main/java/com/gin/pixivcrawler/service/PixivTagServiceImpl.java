@@ -4,8 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.gin.pixivcrawler.dao.PixivCookieDao;
 import com.gin.pixivcrawler.dao.PixivTagDao;
-import com.gin.pixivcrawler.utils.pixivUtils.PixivPost;
-import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivCookie;
+import com.gin.pixivcrawler.entity.taskQuery.AddTagQuery;
+import com.gin.pixivcrawler.service.queryService.AddTagQueryService;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTag;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
 import lombok.extern.slf4j.Slf4j;
@@ -31,10 +31,12 @@ public class PixivTagServiceImpl extends ServiceImpl<PixivTagDao, PixivTag> impl
     private final PixivCookieDao pixivCookieDao;
     private final List<Long> addTagQuery = new ArrayList<>();
     private final ThreadPoolTaskExecutor tagExecutor;
+    private final AddTagQueryService addTagQueryService;
 
-    public PixivTagServiceImpl(PixivCookieDao pixivCookieDao, ThreadPoolTaskExecutor tagExecutor) {
+    public PixivTagServiceImpl(PixivCookieDao pixivCookieDao, ThreadPoolTaskExecutor tagExecutor, AddTagQueryService addTagQueryService) {
         this.pixivCookieDao = pixivCookieDao;
         this.tagExecutor = tagExecutor;
+        this.addTagQueryService = addTagQueryService;
     }
 
     @Override
@@ -71,20 +73,9 @@ public class PixivTagServiceImpl extends ServiceImpl<PixivTagDao, PixivTag> impl
 
     @Override
     public void addTag(PixivIllustDetail detail, Long userId) {
-        QueryWrapper<PixivCookie> qw = new QueryWrapper<>();
-        qw.eq("user_id", userId);
-//        查询tag翻译
         String tagTranslatedString = translate(detail.getTagString(), " ");
-
-        PixivCookie pixivCookie = pixivCookieDao.selectOne(qw);
         Long pid = detail.getId();
-        addTagQuery.add(pid);
-        log.info("当前添加tag的队列长度为：{}", addTagQuery.size());
-        tagExecutor.execute(() -> {
-            PixivPost.addTags(pid, pixivCookie.getCookie(), pixivCookie.getTt(), tagTranslatedString);
-            addTagQuery.remove(pid);
-            log.info("当前添加tag的队列长度为：{}", addTagQuery.size());
-        });
+        addTagQueryService.saveOne(new AddTagQuery(pid, userId, tagTranslatedString));
     }
 
 

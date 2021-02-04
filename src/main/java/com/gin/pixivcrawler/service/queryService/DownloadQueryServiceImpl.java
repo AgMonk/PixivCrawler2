@@ -1,4 +1,4 @@
-package com.gin.pixivcrawler.service;
+package com.gin.pixivcrawler.service.queryService;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;

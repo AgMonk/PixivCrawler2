@@ -1,4 +1,4 @@
-package com.gin.pixivcrawler.service;
+package com.gin.pixivcrawler.service.queryService;
 
 import com.gin.pixivcrawler.entity.taskQuery.DownloadQuery;
 import com.gin.pixivcrawler.service.base.BaseService;
