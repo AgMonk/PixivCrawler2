@@ -49,9 +49,20 @@ public class DownloadQueryServiceImpl extends ServiceImpl<DownloadQueryDao, Down
     }
 
     @Override
-    public boolean deleteByUrl(String url) {
+    public boolean deleteByUrl(Collection<String> url) {
         QueryWrapper<DownloadQuery> qw = new QueryWrapper<>();
-        qw.eq("url", url);
+        qw.in("url", url);
         return remove(qw);
+    }
+
+    @Override
+    public List<DownloadQuery> findSortedList(int limit, Collection<String> urlNotIn) {
+        QueryWrapper<DownloadQuery> qw = new QueryWrapper<>();
+        if (urlNotIn.size() > 0) {
+            qw.notIn("url", urlNotIn);
+        }
+        qw.orderByDesc("type", "priority", "uuid");
+        qw.last(String.format("limit %d,%d", 0, limit));
+        return list(qw);
     }
 }

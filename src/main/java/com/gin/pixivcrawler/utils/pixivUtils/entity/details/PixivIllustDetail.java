@@ -47,6 +47,7 @@ public class PixivIllustDetail extends PixivDetailBase implements Serializable {
      */
     private final static int ILLUST_TYPE_GIF = 2;
     public static final String IMG = "/img/";
+    public static final String DELIMITER = ",";
 
 
     /**
@@ -112,8 +113,8 @@ public class PixivIllustDetail extends PixivDetailBase implements Serializable {
 
     public void setTagsInDetail(PixivTagsInDetail tagsInDetail) {
         this.tagsInDetail = tagsInDetail;
-        this.tagString = tagsInDetail.getTags().stream().map(PixivTag::getTag).collect(Collectors.joining(","));
-        this.tagTransString = tagsInDetail.getTags().stream().map(PixivTag::getTransRaw).collect(Collectors.joining(","));
+        this.tagString = tagsInDetail.getTags().stream().map(PixivTag::getTag).collect(Collectors.joining(DELIMITER));
+        this.tagTransString = tagsInDetail.getTags().stream().map(PixivTag::getTransRaw).collect(Collectors.joining(DELIMITER));
     }
 
     @JSONField(serialize = false)

@@ -18,4 +18,15 @@ public interface PixivTagService extends BaseService<PixivTag> {
      * @date 2021/2/3 17:43
      */
     void addTag(PixivIllustDetail detail, Long userId);
+
+    /**
+     * 翻译tag字符串
+     *
+     * @param tagString tag字符串，以英文逗号分隔
+     * @param delimiter 翻译完成的字符串的分隔符
+     * @return java.lang.String
+     * @author bx002
+     * @date 2021/2/4 10:55
+     */
+    String translate(String tagString, String delimiter);
 }

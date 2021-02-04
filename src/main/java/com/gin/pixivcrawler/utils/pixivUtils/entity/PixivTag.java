@@ -1,6 +1,7 @@
 package com.gin.pixivcrawler.utils.pixivUtils.entity;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -42,7 +43,9 @@ public class PixivTag implements Serializable {
     String userName;
     @TableId
     String tag;
+    @TableField(insertStrategy = FieldStrategy.IGNORED)
     String transCustomize;
+    @TableField(insertStrategy = FieldStrategy.IGNORED)
     String transRaw;
 
     public void setTranslation(HashMap<String, String> translation) {

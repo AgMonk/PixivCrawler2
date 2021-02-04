@@ -4,12 +4,10 @@ import com.gin.pixivcrawler.dao.PixivCookieDao;
 import com.gin.pixivcrawler.service.PixivIllustDetailService;
 import com.gin.pixivcrawler.service.PixivTagService;
 import com.gin.pixivcrawler.service.ScheduledTasksService;
-import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -33,8 +31,9 @@ public class TestController {
 
     @RequestMapping("1")
     public void test(Long pid) throws InterruptedException, ExecutionException, TimeoutException {
-        PixivIllustDetail detail = pixivIllustDetailService.getDetail(pid).get(60, TimeUnit.SECONDS);
-        pixivTagService.addTag(detail, 57680761L);
+//        PixivIllustDetail detail = pixivIllustDetailService.getDetail(pid).get(60, TimeUnit.SECONDS);
+//        pixivTagService.addTag(detail, 57680761L);
+        scheduledTasksService.downloadUntagged();
     }
 
 

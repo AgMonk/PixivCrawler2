@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
+import java.io.Serializable;
+
 /**
  * 下载文件队列
  *
@@ -18,7 +20,7 @@ import lombok.experimental.Accessors;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class DownloadQuery {
+public class DownloadQuery implements Serializable {
     @TableId
     String uuid;
     String path;
