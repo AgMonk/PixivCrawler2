@@ -2,6 +2,7 @@ package com.gin.pixivcrawler.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.gin.pixivcrawler.dao.PixivCookieDao;
+import com.gin.pixivcrawler.entity.StatusReport;
 import com.gin.pixivcrawler.entity.taskQuery.AddTagQuery;
 import com.gin.pixivcrawler.entity.taskQuery.DownloadQuery;
 import com.gin.pixivcrawler.service.queryService.AddTagQueryService;
@@ -14,6 +15,7 @@ import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivCookie;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivDetailBase;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -52,6 +54,10 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
 
     private final ThreadPoolTaskExecutor tagExecutor;
     private final PixivCookieDao pixivCookieDao;
+    /**
+     * 未分类作品数量
+     */
+    private int untaggedTotalCount = 0;
 
 
     public ScheduledTasksServiceImpl(PixivIllustDetailService pixivIllustDetailService,
@@ -73,7 +79,9 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
      * @author bx002
      * @date 2021/2/3 17:21
      */
+    @Async("mainExecutor")
     @Override
+    @Scheduled(cron = "3 0/5 * * * ?")
     public void downloadUntagged() throws InterruptedException, ExecutionException, TimeoutException {
         long userId = 57680761;
         String tag = "未分類";
@@ -88,6 +96,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         }
         Integer total = bookmarks.getTotal();
         log.info("用户 userID = {} 收藏中 tag:{} 下总计有作品 {} 个", userId, tag, total);
+        untaggedTotalCount = total;
         List<Long> pidList = bookmarks.getDetails().stream().map(PixivDetailBase::getId).collect(Collectors.toList());
 //        在添加tag队列里的pid不进行请求
         pidList.removeAll(addTagQueryMap.keySet());
@@ -195,11 +204,11 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
 //      同步任务
         List<AddTagQuery> newTasks = addTagQueryService.findAllNotIn(addTagQueryMap.keySet());
         newTasks.forEach(query -> addTagQueryMap.put(query.getPid(), query));
-
         int size = addTagQueryMap.size();
-        if (size == 0) {
+        if (size == 0 || newTasks.size() == 0) {
             return;
         }
+
         log.info("当前添加tag的队列长度为：{}", size);
 //        执行任务
         newTasks.forEach(query -> {
@@ -211,10 +220,19 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                 PixivPost.addTags(pid, pixivCookie.getCookie(), pixivCookie.getTt(), query.getTag());
                 if (addTagQueryService.delete(pid)) {
                     addTagQueryMap.remove(pid);
+                    untaggedTotalCount--;
                 }
                 log.info("当前添加tag的队列长度为：{}", addTagQueryMap.size());
             });
         });
 
+    }
+
+    @Override
+    public StatusReport getStatusReport() {
+        return StatusReport.create()
+                .setUntaggedTotalCount(untaggedTotalCount)
+                .setAddTagQuery(addTagQueryMap.values())
+                ;
     }
 }
