@@ -117,6 +117,7 @@ public class PixivPost {
                 .addEntityString("comment", "")
                 .addEntityString("restrict", "0")
                 .post(URL_TAG_ADD + pid);
+        
     }
 
 

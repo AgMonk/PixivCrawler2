@@ -4,11 +4,15 @@ import com.gin.pixivcrawler.service.base.BaseService;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTag;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
 
+import java.util.List;
+
 /**
  * @author bx002
  * @date 2021/2/2 14:35
  */
 public interface PixivTagService extends BaseService<PixivTag> {
+    List<Long> getAddTagQuery();
+
     /**
      * 为作品添加tag
      *

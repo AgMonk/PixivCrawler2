@@ -58,9 +58,9 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         long userId = 57680761;
         String tag = "未分類";
 //        单次请求作品数量上限
-        int singleLimit = 10;
+        int singleLimit = 5;
 //        一次操作请求作品数量上限
-        int totalLimit = 30;
+        int totalLimit = 10;
         PixivBookmarks bookmarks = pixivUserBookmarksService.get(userId, tag, 0, singleLimit).get(60, TimeUnit.SECONDS);
         if (bookmarks == null) {
             log.warn("未获取到收藏数据 userID = {}", userId);
