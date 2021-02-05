@@ -58,7 +58,7 @@ public class DownloadQueryServiceImpl extends ServiceImpl<DownloadQueryDao, Down
     @Override
     public List<DownloadQuery> findSortedList(int limit, Collection<String> urlNotIn) {
         QueryWrapper<DownloadQuery> qw = new QueryWrapper<>();
-        if (urlNotIn.size() > 0) {
+        if (urlNotIn != null && urlNotIn.size() > 0) {
             qw.notIn("url", urlNotIn);
         }
         qw.orderByDesc("type", "priority", "uuid");

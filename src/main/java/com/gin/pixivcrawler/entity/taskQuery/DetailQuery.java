@@ -24,6 +24,7 @@ import java.util.Objects;
 public class DetailQuery implements Serializable {
     @TableId
     Long pid;
+    Long userId;
     String type;
     Integer priority;
     /**

@@ -15,6 +15,7 @@ import com.gin.pixivcrawler.utils.pixivUtils.PixivPost;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivBookmarks;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivCookie;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivDetailBase;
+import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -24,12 +25,14 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 import static com.gin.pixivcrawler.utils.ariaUtils.Aria2Request.*;
@@ -44,6 +47,9 @@ import static com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDe
 @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
 public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     public static final int ARIA_2_QUERY_MAX_COUNT = 30;
+    public static final int DETAIL_QUERY_MAX_COUNT = 30;
+    public static final String CALLBACK_TASK_ADD_TAG = "添加标签";
+    public static final String CALLBACK_TASK_DOWNLOAD = "下载";
     private final PixivIllustDetailService pixivIllustDetailService;
     private final PixivUserBookmarksService pixivUserBookmarksService;
     private final PixivTagService pixivTagService;
@@ -52,8 +58,10 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     private final DetailQueryService detailQueryService;
 
     private final HashMap<Long, AddTagQuery> addTagQueryMap = new HashMap<>();
+    private final HashMap<Long, DetailQuery> detailQueryMap = new HashMap<>();
 
     private final ThreadPoolTaskExecutor tagExecutor;
+    private final ThreadPoolTaskExecutor detailExecutor;
     private final PixivCookieDao pixivCookieDao;
     /**
      * 未分类作品数量
@@ -63,7 +71,13 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
 
     public ScheduledTasksServiceImpl(PixivIllustDetailService pixivIllustDetailService,
                                      PixivUserBookmarksService pixivUserBookmarksService,
-                                     PixivTagService pixivTagService, DownloadQueryService downloadQueryService, AddTagQueryService addTagQueryService, DetailQueryService detailQueryService, ThreadPoolTaskExecutor tagExecutor, PixivCookieDao pixivCookieDao) {
+                                     PixivTagService pixivTagService,
+                                     DownloadQueryService downloadQueryService,
+                                     AddTagQueryService addTagQueryService,
+                                     DetailQueryService detailQueryService,
+                                     ThreadPoolTaskExecutor tagExecutor,
+                                     ThreadPoolTaskExecutor detailExecutor,
+                                     PixivCookieDao pixivCookieDao) {
         this.pixivIllustDetailService = pixivIllustDetailService;
         this.pixivUserBookmarksService = pixivUserBookmarksService;
         this.pixivTagService = pixivTagService;
@@ -71,6 +85,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         this.addTagQueryService = addTagQueryService;
         this.detailQueryService = detailQueryService;
         this.tagExecutor = tagExecutor;
+        this.detailExecutor = detailExecutor;
         this.pixivCookieDao = pixivCookieDao;
     }
 
@@ -101,7 +116,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         untaggedTotalCount = total;
         List<Long> pidList = bookmarks.getDetails().stream().map(PixivDetailBase::getId).collect(Collectors.toList());
 //      总数量大于请求总上限 请求更多
-        if (total >= totalLimit) {
+        if (total >= singleLimit) {
             List<Future<PixivBookmarks>> tasksFuture = new ArrayList<>();
             for (int i = 1; i < (totalLimit / singleLimit); i++) {
                 tasksFuture.add(pixivUserBookmarksService.get(userId, tag, i * singleLimit, singleLimit));
@@ -115,28 +130,8 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         pidList.removeAll(addTagQueryMap.keySet());
 //        添加到详情队列
         List<DetailQuery> detailQueries = pidList.stream()
-                .map(pid -> new DetailQuery(pid, "3.未分类", 5, "5.下载")).collect(Collectors.toList());
+                .map(pid -> new DetailQuery(pid, userId, "3.未分类", 5, CALLBACK_TASK_ADD_TAG + "," + CALLBACK_TASK_DOWNLOAD)).collect(Collectors.toList());
         detailQueryService.saveList(detailQueries);
-
-//        List<Future<PixivIllustDetail>> tasks = new ArrayList<>();
-//        pidList.forEach(pid -> tasks.add(pixivIllustDetailService.getDetail(pid)));
-//        for (Future<PixivIllustDetail> task : tasks) {
-//            PixivIllustDetail detail = task.get(60, TimeUnit.SECONDS);
-////          添加tag
-//            pixivTagService.addTag(detail, userId);
-////          添加下载队列
-//            for (String url : detail.getUrlList()) {
-//                Matcher matcher = PIXIV_ILLUST_FULL_NAME.matcher(url);
-//                if (matcher.find()) {
-//                    String uuid = matcher.group();
-//                    String path = "f:/illust/未分类/";
-//                    String fileName = url.substring(url.lastIndexOf("/") + 1);
-//                    String type = "3.未分类";
-//                    int priority = 5;
-//                    downloadQueryService.saveOne(new DownloadQuery(uuid, path, fileName, url, type, priority));
-//                }
-//            }
-//        }
     }
 
     /**
@@ -145,28 +140,8 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
      * @author bx002
      * @date 2021/2/4 16:37
      */
-    @Scheduled(cron = "0/30 * * * * ?")
+    @Scheduled(cron = "1/15 * * * * ?")
     public void addDownloadQuery2Aria2() {
-//        获取停止任务
-        List<Aria2Quest> stoppedQuest = tellStopped().getResult().stream()
-                .filter(quest -> PIXIV_ILLUST_FULL_NAME.matcher(quest.getFiles().get(0).getUris().get(0).getUri()).find()).collect(Collectors.toList());
-        //        完成Url
-        List<String> completedUrlList = stoppedQuest.stream()
-                .filter(Aria2Quest::isCompleted)
-                .map(quest -> quest.getFiles().get(0).getUris().get(0).getUri())
-                .collect(Collectors.toList());
-//        停止gid
-        List<String> gidList = stoppedQuest.stream().map(Aria2Quest::getGid).collect(Collectors.toList());
-//        移除完成任务
-        if (stoppedQuest.size() > 0) {
-//            移除所有停止任务
-            for (String gid : gidList) {
-                removeDownloadResult(gid);
-            }
-            if (completedUrlList.size() > 0 && downloadQueryService.deleteByUrl(completedUrlList)) {
-                log.info("从数据库移除 {} 个已完成任务", completedUrlList.size());
-            }
-        }
 //        获取当前正在进行的任务数量
         List<Aria2Quest> activeQuests = tellActive().getResult();
         List<Aria2Quest> waitingQuests = tellWaiting().getResult();
@@ -196,7 +171,36 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
             }
         }
         log.info("添加 {} 个下载任务到 Aria2", count);
+    }
 
+    /**
+     * 移除停止和完成的任务
+     *
+     * @author bx002
+     * @date 2021/2/5 15:37
+     */
+    @Scheduled(cron = "0/10 * * * * ?")
+    public void removeCompletedQueryInAria2() {
+        //        获取停止任务
+        List<Aria2Quest> stoppedQuest = tellStopped().getResult().stream()
+                .filter(quest -> PIXIV_ILLUST_FULL_NAME.matcher(quest.getFiles().get(0).getUris().get(0).getUri()).find()).collect(Collectors.toList());
+        //        完成Url
+        List<String> completedUrlList = stoppedQuest.stream()
+                .filter(Aria2Quest::isCompleted)
+                .map(quest -> quest.getFiles().get(0).getUris().get(0).getUri())
+                .collect(Collectors.toList());
+//        停止gid
+        List<String> gidList = stoppedQuest.stream().map(Aria2Quest::getGid).collect(Collectors.toList());
+//        移除完成任务
+        if (stoppedQuest.size() > 0) {
+//            移除所有停止任务
+            for (String gid : gidList) {
+                removeDownloadResult(gid);
+            }
+            if (completedUrlList.size() > 0 && downloadQueryService.deleteByUrl(completedUrlList)) {
+                log.info("从数据库移除 {} 个已完成任务", completedUrlList.size());
+            }
+        }
     }
 
     /**
@@ -241,7 +245,48 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
      */
     @Scheduled(cron = "3/5 * * * * ?")
     public void detail() {
-        
+        List<DetailQuery> newDetailQuery = detailQueryService.findSortedList(DETAIL_QUERY_MAX_COUNT, detailQueryMap.keySet());
+        newDetailQuery.forEach(dq -> {
+            Long pid = dq.getPid();
+            detailQueryMap.put(pid, dq);
+            detailExecutor.execute(() -> {
+                List<String> callbacks = Arrays.asList(dq.getCallback().split(","));
+                try {
+                    PixivIllustDetail detail = pixivIllustDetailService.getDetail(pid).get(60, TimeUnit.SECONDS);
+//                  回调任务中有添加tag 添加
+                    if (callbacks.contains(CALLBACK_TASK_ADD_TAG)) {
+                        pixivTagService.addTag(detail, dq.getUserId());
+                    }
+//                    回调任务中有下载 下载
+                    if (callbacks.contains(CALLBACK_TASK_DOWNLOAD)) {
+                        for (String url : detail.getUrlList()) {
+                            Matcher matcher = PIXIV_ILLUST_FULL_NAME.matcher(url);
+                            if (matcher.find()) {
+                                String uuid = matcher.group();
+                                String path = "f:/illust/未分类/";
+                                String fileName = url.substring(url.lastIndexOf("/") + 1);
+                                String type = "3.未分类";
+                                int priority = 5;
+                                downloadQueryService.saveOne(new DownloadQuery(uuid, path, fileName, url, type, priority));
+                            }
+                        }
+                    }
+//                    删除队列中的详情任务
+                    if (detailQueryService.deleteById(pid)) {
+                        detailQueryMap.remove(pid);
+                    }
+
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (TimeoutException e) {
+                    e.printStackTrace();
+                }
+            });
+        });
+
+
     }
 
     @Override
@@ -250,6 +295,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                 .setUntaggedTotalCount(untaggedTotalCount)
                 .setAddTagQuery(addTagQueryMap.values())
                 .setDownloadQuery(downloadQueryService.findSortedList(99, null))
+                .setDetailQuery(detailQueryService.findSortedList(99, null))
                 ;
     }
 }

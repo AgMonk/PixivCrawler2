@@ -31,11 +31,11 @@ public class DetailQueryServiceImpl extends ServiceImpl<DetailQueryDao, DetailQu
 
     @Override
     public boolean saveList(Collection<DetailQuery> entities) {
-        List<DetailQuery> oldDetailQuery = listByIds(entities.stream().map(DetailQuery::getPid).collect(Collectors.toList()));
-        entities.removeAll(oldDetailQuery);
         if (entities.size() == 0) {
             return true;
         }
+        List<DetailQuery> oldDetailQuery = listByIds(entities.stream().map(DetailQuery::getPid).collect(Collectors.toList()));
+        entities.removeAll(oldDetailQuery);
         return saveBatch(entities);
     }
 
@@ -52,7 +52,7 @@ public class DetailQueryServiceImpl extends ServiceImpl<DetailQueryDao, DetailQu
     @Override
     public List<DetailQuery> findSortedList(int limit, Collection<Long> pidNotIn) {
         QueryWrapper<DetailQuery> qw = new QueryWrapper<>();
-        if (pidNotIn.size() > 0) {
+        if (pidNotIn != null && pidNotIn.size() > 0) {
             qw.notIn("pid", pidNotIn);
         }
         qw.orderByDesc("type", "priority", "callback", "pid");
