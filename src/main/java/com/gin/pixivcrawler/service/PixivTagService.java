@@ -4,6 +4,7 @@ import com.gin.pixivcrawler.service.base.BaseService;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTag;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
 
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -11,7 +12,6 @@ import java.util.List;
  * @date 2021/2/2 14:35
  */
 public interface PixivTagService extends BaseService<PixivTag> {
-    List<Long> getAddTagQuery();
 
     /**
      * 为作品添加tag
@@ -33,4 +33,23 @@ public interface PixivTagService extends BaseService<PixivTag> {
      * @date 2021/2/4 10:55
      */
     String translate(String tagString, String delimiter);
+
+    /**
+     * 查询所有带有自带翻译或自定义翻译的tag(构建字典)
+     *
+     * @param tagList tag范围
+     * @return java.util.List<com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTag>
+     * @author bx002
+     * @date 2021/2/5 15:49
+     */
+    HashMap<String, String> findDic(List<String> tagList);
+
+    /**
+     * 按照模式查询
+     *
+     * @return java.util.List<com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTag>
+     * @author bx002
+     * @date 2021/2/5 15:55
+     */
+    List<PixivTag> findListBy(int mode, String keyword);
 }

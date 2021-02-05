@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.gin.pixivcrawler.utils.StringUtils;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -42,10 +43,17 @@ public class PixivTag implements Serializable {
     String userName;
     @TableId
     String tag;
-    @TableField(insertStrategy = FieldStrategy.IGNORED)
+    @TableField(insertStrategy = FieldStrategy.IGNORED, updateStrategy = FieldStrategy.IGNORED)
     String transCustomize;
     @TableField(insertStrategy = FieldStrategy.IGNORED)
     String transRaw;
+
+    public void setTransCustomize(String transCustomize) {
+        if (StringUtils.isEmpty(transCustomize)) {
+            transCustomize = null;
+        }
+        this.transCustomize = transCustomize;
+    }
 
     public void setTranslation(HashMap<String, String> translation) {
         this.translation = translation;
