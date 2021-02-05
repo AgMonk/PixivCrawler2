@@ -34,7 +34,14 @@ import java.util.concurrent.TimeoutException;
 @Slf4j
 @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
 public class PixivIllustDetailServiceImpl extends ServiceImpl<PixivIllustDetailDao, PixivIllustDetail> implements PixivIllustDetailService {
+    /**
+     * 更新详情周期
+     */
     private final static long EXPIRED = 60 * 60 * 24 * 15;
+    /**
+     * 最小收藏数
+     */
+    public static final int MIN_BOOKMARK_COUNT = 200;
     private final HashMap<Long, PixivIllustDetail> detailCache = new HashMap<>();
     private final ThreadPoolTaskExecutor detailExecutor;
 
@@ -50,19 +57,18 @@ public class PixivIllustDetailServiceImpl extends ServiceImpl<PixivIllustDetailD
 
     @Override
     public PixivIllustDetail findOne(Serializable id) {
-        long now = System.currentTimeMillis() / 1000;
         long pid = (long) id;
         PixivIllustDetail detail = detailCache.get(pid);
-        if (detail != null && detail.getCheckSeconds() > now - EXPIRED) {
+        if (isAvailable(detail)) {
             return detail;
         }
-//        缓存中无数据
+//        缓存中 无数据/过期/或收藏数过低
         detail = getById(pid);
-        if (detail != null && detail.getCheckSeconds() > now - EXPIRED) {
+        if (isAvailable(detail)) {
             detailCache.put(pid, detail);
             return detail;
         }
-//        数据库无数据或过期
+//        数据库 无数据/过期/或收藏数过低
         PixivIllustDetail newDetail = PixivPost.getIllustDetail(pid, null);
         if (newDetail != null) {
             if (detail == null) {
@@ -83,6 +89,19 @@ public class PixivIllustDetailServiceImpl extends ServiceImpl<PixivIllustDetailD
             pixivTagService.saveList(tags);
         }
         return detail;
+    }
+
+    /**
+     * 判断该详情是否可用
+     *
+     * @param detail 详情
+     * @return boolean
+     * @author bx002
+     * @date 2021/2/5 11:51
+     */
+    private static boolean isAvailable(PixivIllustDetail detail) {
+        long now = System.currentTimeMillis() / 1000;
+        return detail != null && detail.getCheckSeconds() > now - EXPIRED && detail.getBookmarkCount() > MIN_BOOKMARK_COUNT;
     }
 
 
