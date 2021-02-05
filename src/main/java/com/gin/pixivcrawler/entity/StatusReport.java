@@ -1,11 +1,13 @@
 package com.gin.pixivcrawler.entity;
 
 import com.gin.pixivcrawler.entity.taskQuery.AddTagQuery;
+import com.gin.pixivcrawler.entity.taskQuery.DownloadQuery;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * 状态报告
@@ -18,6 +20,7 @@ import java.util.Collection;
 public class StatusReport implements Serializable {
     int untaggedTotalCount;
     Collection<AddTagQuery> addTagQuery;
+    List<DownloadQuery> downloadQuery;
 
     public static StatusReport create() {
         return new StatusReport();

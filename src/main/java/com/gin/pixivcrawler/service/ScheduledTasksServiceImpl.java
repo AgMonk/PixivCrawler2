@@ -209,7 +209,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
             return;
         }
 
-        log.info("当前添加tag的队列长度为：{}", size);
+//        log.info("当前添加tag的队列长度为：{}", size);
 //        执行任务
         newTasks.forEach(query -> {
             Long pid = query.getPid();
@@ -222,7 +222,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                     addTagQueryMap.remove(pid);
                     untaggedTotalCount--;
                 }
-                log.info("当前添加tag的队列长度为：{}", addTagQueryMap.size());
+//                log.info("当前添加tag的队列长度为：{}", addTagQueryMap.size());
             });
         });
 
@@ -233,6 +233,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         return StatusReport.create()
                 .setUntaggedTotalCount(untaggedTotalCount)
                 .setAddTagQuery(addTagQueryMap.values())
+                .setDownloadQuery(downloadQueryService.findSortedList(99, null))
                 ;
     }
 }
