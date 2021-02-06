@@ -5,6 +5,7 @@ import com.gin.pixivcrawler.service.PixivTagService;
 import com.gin.pixivcrawler.utils.StringUtils;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTag;
 import lombok.extern.slf4j.Slf4j;
+import org.nlpcn.commons.lang.jianfan.JianFan;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -55,12 +56,20 @@ public class PixivTagController {
     public Res<List<PixivTag>> findListBy(@RequestParam(defaultValue = "0") Integer mode, String keyword) {
         TreeMap<String, String> dic = pixivTagService.findDic(null);
         return Res.success(pixivTagService.findListBy(mode, keyword).stream().peek(tag -> {
-            tag.addRecTrans(getRecommend(tag.getTag(), dic));
+            String t = tag.getTag();
+            tag.addRecTrans(getRecommend(t, dic));
+            tag.addRecTrans(JianFan.f2j(t));
             String transRaw = tag.getTransRaw();
             if (!StringUtils.isEmpty(transRaw)) {
                 tag.addRecTrans(getRecommend(transRaw, dic));
             }
         }).collect(Collectors.toList()));
+    }
+
+    @RequestMapping("updateTrans")
+    public Res<Void> updateTrans(PixivTag tag) {
+        pixivTagService.updateOne(tag);
+        return Res.success();
     }
 
     private static String getRecommend(String tag, TreeMap<String, String> dic) {
@@ -69,7 +78,7 @@ public class PixivTagController {
             String k = entry.getKey();
             String v = entry.getValue();
             if (t.contains(k)) {
-                log.info("替换 {}->{}", k, v);
+//                log.info("tag：{} 替换 {} - > {} ", tag, k, v);
                 t = t.replace(k, v);
             }
         }

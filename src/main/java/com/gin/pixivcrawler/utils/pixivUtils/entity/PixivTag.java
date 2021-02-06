@@ -64,11 +64,12 @@ public class PixivTag implements Serializable {
         }
     }
 
+
     public void setTransCustomize(String transCustomize) {
         if (StringUtils.isEmpty(transCustomize)) {
             transCustomize = null;
         }
-        this.transCustomize = transCustomize;
+        this.transCustomize = replace(transCustomize);
     }
 
     public void setTranslation(HashMap<String, String> translation) {

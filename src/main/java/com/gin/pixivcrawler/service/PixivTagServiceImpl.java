@@ -69,6 +69,7 @@ public class PixivTagServiceImpl extends ServiceImpl<PixivTagDao, PixivTag> impl
 
     @Override
     public boolean updateOne(PixivTag entity) {
+        log.info("更新Tag {} -> {}", entity.getTag(), entity.getTransCustomize());
         return updateById(entity);
     }
 
@@ -85,7 +86,9 @@ public class PixivTagServiceImpl extends ServiceImpl<PixivTagDao, PixivTag> impl
         if (tagList != null && tagList.size() > 0) {
             queryWrapper.in("tag", tagList);
         }
-        queryWrapper.and(rqw -> rqw.isNotNull("trans_customize").or().isNotNull("trans_raw"));
+        queryWrapper.and(rqw -> rqw.isNotNull("trans_customize")
+//                .or().isNotNull("trans_raw")
+        );
         List<PixivTag> list = list(queryWrapper);
         TreeMap<String, String> dic = new TreeMap<>((o1, o2) -> {
             if (o1.length() != o2.length()) {
@@ -96,18 +99,17 @@ public class PixivTagServiceImpl extends ServiceImpl<PixivTagDao, PixivTag> impl
         list.forEach(tagObj -> {
             String transCustomize = tagObj.getTransCustomize();
             String tag = tagObj.getTag();
-            String trans;
-            if (transCustomize != null) {
-                trans = transCustomize;
-            } else {
-                trans = tagObj.getTransRaw();
-//            如果翻译结果为纯英文则放弃原生翻译 除非原tag也是纯英文
-                if (PATTERN_ONLY_WORD.matcher(trans).find() && !PATTERN_ONLY_WORD.matcher(tag).find()) {
-                    trans = tag;
-                }
-            }
+            String trans = transCustomize;
+//            if (transCustomize != null) {
+//                trans = transCustomize;
+//            } else {
+//                trans = tagObj.getTransRaw();
+////            如果翻译结果为纯英文则放弃原生翻译 除非原tag也是纯英文
+//                if (PATTERN_ONLY_WORD.matcher(trans).find() && !PATTERN_ONLY_WORD.matcher(tag).find()) {
+//                    trans = tag;
+//                }
+//            }
             trans = PixivTag.replace(trans);
-            log.info("添加字典 {} {}", tag, trans);
             dic.put(tag, trans);
         });
         return dic;

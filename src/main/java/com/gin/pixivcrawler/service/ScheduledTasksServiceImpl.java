@@ -98,7 +98,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
      */
     @Async("mainExecutor")
     @Override
-    @Scheduled(cron = "3 0/5 * * * ?")
+    @Scheduled(cron = "3 0/10 * * * ?")
     public void downloadUntagged() throws InterruptedException, ExecutionException, TimeoutException {
         long userId = 57680761;
         String tag = "未分類";
