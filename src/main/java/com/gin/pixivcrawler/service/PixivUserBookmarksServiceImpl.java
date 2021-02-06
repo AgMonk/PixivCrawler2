@@ -1,6 +1,5 @@
 package com.gin.pixivcrawler.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.gin.pixivcrawler.dao.PixivCookieDao;
 import com.gin.pixivcrawler.utils.pixivUtils.PixivPost;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivBookmarks;
@@ -31,9 +30,7 @@ public class PixivUserBookmarksServiceImpl implements PixivUserBookmarksService 
     @Async("bookmarksExecutor")
     @Override
     public Future<PixivBookmarks> get(long userId, String tag, int offset, int limit) {
-        QueryWrapper<PixivCookie> qw = new QueryWrapper<>();
-        qw.eq("user_id", userId);
-        PixivCookie pixivCookie = pixivCookieDao.selectOne(qw);
+        PixivCookie pixivCookie = pixivCookieDao.selectById(userId);
         return AsyncResult.forValue(PixivPost.getBookmarks(pixivCookie.getCookie(), pixivCookie.getUserId(), offset, limit, tag));
     }
 }

@@ -16,6 +16,6 @@ import java.util.List;
 @Data
 public class PixivBookmarks implements Serializable {
     Integer total;
-    @JSONField(name = "works")
+    @JSONField(alternateNames = {"works", "data"})
     List<PixivIllustDetailInBookmarks> details;
 }

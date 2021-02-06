@@ -31,6 +31,7 @@ import java.util.concurrent.TimeoutException;
  * @author bx002
  * @date 2021/2/2 13:17
  */
+@SuppressWarnings("TryWithIdenticalCatches")
 @Service
 @Slf4j
 @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
@@ -38,7 +39,7 @@ public class PixivIllustDetailServiceImpl extends ServiceImpl<PixivIllustDetailD
     /**
      * 更新详情周期
      */
-    private final static long EXPIRED = 60 * 60 * 24 * 15;
+    private final static long EXPIRED = 60 * 60 * 24 * 30;
     /**
      * 最小收藏数
      */

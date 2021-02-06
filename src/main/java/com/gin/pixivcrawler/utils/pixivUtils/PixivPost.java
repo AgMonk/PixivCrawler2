@@ -3,10 +3,14 @@ package com.gin.pixivcrawler.utils.pixivUtils;
 import com.alibaba.fastjson.JSONObject;
 import com.gin.pixivcrawler.utils.JsonUtil;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivBookmarks;
+import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivSearchResults;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
 import com.gin.pixivcrawler.utils.requestUtils.GetRequest;
 import com.gin.pixivcrawler.utils.requestUtils.PostRequest;
 import com.gin.pixivcrawler.utils.requestUtils.RequestBase;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 import static com.gin.pixivcrawler.utils.JsonUtil.printJson;
 
@@ -17,14 +21,22 @@ import static com.gin.pixivcrawler.utils.JsonUtil.printJson;
  * @date 2021/2/1 17:43
  */
 public class PixivPost {
-    private static final String DOMAIN = "https://www.pixiv.net";
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(PixivPost.class);
+    public static final String DOMAIN = "https://www.pixiv.net";
     /**
      * 作品详情接口
      */
-    private final static String URL_ILLUST_DETAIL = "https://www.pixiv.net/ajax/illust/%d";
-    private final static String URL_USER_BOOKMARKS = "https://www.pixiv.net/ajax/user/%d/illusts/bookmarks";
-    private final static String URL_TAG_ADD = "https://www.pixiv.net/bookmark_add.php?id=";
+    private final static String URL_ILLUST_DETAIL = DOMAIN + "/ajax/illust/%d";
+    /**
+     * 获取用户收藏接口
+     */
+    private final static String URL_USER_BOOKMARKS = DOMAIN + "/ajax/user/%d/illusts/bookmarks";
+    /**
+     * 添加收藏Tag接口
+     */
+    private final static String URL_TAG_ADD = DOMAIN + "/bookmark_add.php?id=";
+
+    private final static String URL_SEARCH_ARTWORKS = DOMAIN + "/ajax/search/artworks/";
 
     public static final String TIME_COST = " 完成 耗时:{}";
 
@@ -117,7 +129,37 @@ public class PixivPost {
                 .addEntityString("comment", "")
                 .addEntityString("restrict", "0")
                 .post(URL_TAG_ADD + pid);
-        
+
+    }
+
+    /**
+     * 搜索作品
+     *
+     * @param keyword     关键字
+     * @param p           页数(每页固定上限60个)
+     * @param cookie      cookie(可选 不提供时不能搜索R-18作品)
+     * @param searchTitle true = 搜索标题 false =搜 索tag
+     * @param mode        模式 可取值： all safe r18
+     * @return 搜索结果
+     */
+    public static PixivSearchResults search(String keyword, Integer p, String cookie, boolean searchTitle, String mode) {
+        LOG.info("搜索关键字 {}", keyword);
+        String result = GetRequest.create()
+                .addCookie(cookie)
+                .addParam("s_mode", searchTitle ? "s_tc" : "s_tag")
+                .addParam("mode", mode)
+                .addParam("p", p)
+                .get(URL_SEARCH_ARTWORKS + URLEncoder.encode(keyword, StandardCharsets.UTF_8));
+
+//        printJson(JSONObject.parseObject(result));
+
+        PixivSearchResults body = null;
+        try {
+            body = getBody(result, PixivSearchResults.class);
+        } catch (RuntimeException e) {
+            LOG.warn("搜索错误 {} {}", keyword, e.getMessage());
+        }
+        return body;
     }
 
 

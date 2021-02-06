@@ -46,7 +46,7 @@ public class PixivTag implements Serializable {
     String userName;
     @TableId
     String tag;
-    @TableField(insertStrategy = FieldStrategy.IGNORED, updateStrategy = FieldStrategy.IGNORED)
+    @TableField(insertStrategy = FieldStrategy.IGNORED)
     String transCustomize;
     @TableField(insertStrategy = FieldStrategy.IGNORED)
     String transRaw;

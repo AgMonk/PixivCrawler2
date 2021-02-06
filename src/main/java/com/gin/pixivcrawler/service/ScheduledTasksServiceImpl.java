@@ -1,6 +1,5 @@
 package com.gin.pixivcrawler.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.gin.pixivcrawler.dao.PixivCookieDao;
 import com.gin.pixivcrawler.entity.StatusReport;
 import com.gin.pixivcrawler.entity.taskQuery.AddTagQuery;
@@ -223,9 +222,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         newTasks.forEach(query -> {
             Long pid = query.getPid();
             tagExecutor.execute(() -> {
-                QueryWrapper<PixivCookie> qw = new QueryWrapper<>();
-                qw.eq("user_id", query.getUserId());
-                PixivCookie pixivCookie = pixivCookieDao.selectOne(qw);
+                PixivCookie pixivCookie = pixivCookieDao.selectById(query.getUserId());
                 PixivPost.addTags(pid, pixivCookie.getCookie(), pixivCookie.getTt(), query.getTag());
                 if (addTagQueryService.delete(pid)) {
                     addTagQueryMap.remove(pid);
