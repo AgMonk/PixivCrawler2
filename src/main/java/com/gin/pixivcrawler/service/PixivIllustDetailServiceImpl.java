@@ -7,6 +7,7 @@ import com.gin.pixivcrawler.utils.pixivUtils.PixivPost;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTag;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivUser;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
+import com.gin.pixivcrawler.utils.requestUtils.RequestBase;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
@@ -57,6 +58,8 @@ public class PixivIllustDetailServiceImpl extends ServiceImpl<PixivIllustDetailD
 
     @Override
     public PixivIllustDetail findOne(Serializable id) {
+        log.info("请求详情 pid = {} ", id);
+        long start = System.currentTimeMillis();
         long pid = (long) id;
         PixivIllustDetail detail = detailCache.get(pid);
         if (isAvailable(detail)) {
@@ -88,6 +91,7 @@ public class PixivIllustDetailServiceImpl extends ServiceImpl<PixivIllustDetailD
             List<PixivTag> tags = detail.getTagsInDetail().getTags();
             pixivTagService.saveList(tags);
         }
+        log.info("获得详情 pid = {} 耗时：{}", id, RequestBase.timeCost(start));
         return detail;
     }
 

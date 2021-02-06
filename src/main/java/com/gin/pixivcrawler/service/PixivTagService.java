@@ -4,8 +4,8 @@ import com.gin.pixivcrawler.service.base.BaseService;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTag;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.TreeMap;
 
 /**
  * @author bx002
@@ -42,7 +42,7 @@ public interface PixivTagService extends BaseService<PixivTag> {
      * @author bx002
      * @date 2021/2/5 15:49
      */
-    HashMap<String, String> findDic(List<String> tagList);
+    TreeMap<String, String> findDic(List<String> tagList);
 
     /**
      * 按照模式查询

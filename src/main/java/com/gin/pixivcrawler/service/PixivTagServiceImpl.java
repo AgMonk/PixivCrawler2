@@ -9,6 +9,7 @@ import com.gin.pixivcrawler.utils.StringUtils;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTag;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
 import lombok.extern.slf4j.Slf4j;
+import org.nlpcn.commons.lang.jianfan.JianFan;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,8 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
+import java.util.TreeMap;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail.DELIMITER;
@@ -30,6 +32,7 @@ import static com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDe
 @Slf4j
 @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
 public class PixivTagServiceImpl extends ServiceImpl<PixivTagDao, PixivTag> implements PixivTagService {
+    public static final Pattern PATTERN_ONLY_WORD = Pattern.compile("^[\\w\\s-']+$");
     private final int LIST_MODE_HAS_CUSTOM_TRANSLATION = 1;
     private final int LIST_MODE_HAS_NOT_CUSTOM_TRANSLATION = 2;
 
@@ -77,22 +80,35 @@ public class PixivTagServiceImpl extends ServiceImpl<PixivTagDao, PixivTag> impl
     }
 
     @Override
-    public HashMap<String, String> findDic(List<String> tagList) {
+    public TreeMap<String, String> findDic(List<String> tagList) {
         QueryWrapper<PixivTag> queryWrapper = new QueryWrapper<>();
         if (tagList != null && tagList.size() > 0) {
             queryWrapper.in("tag", tagList);
         }
         queryWrapper.and(rqw -> rqw.isNotNull("trans_customize").or().isNotNull("trans_raw"));
         List<PixivTag> list = list(queryWrapper);
-        HashMap<String, String> dic = new HashMap<>(list.size());
+        TreeMap<String, String> dic = new TreeMap<>((o1, o2) -> {
+            if (o1.length() != o2.length()) {
+                return o2.length() - o1.length();
+            }
+            return o2.compareTo(o1);
+        });
         list.forEach(tagObj -> {
             String transCustomize = tagObj.getTransCustomize();
             String tag = tagObj.getTag();
+            String trans;
             if (transCustomize != null) {
-                dic.put(tag, transCustomize);
+                trans = transCustomize;
             } else {
-                dic.put(tag, tagObj.getTransRaw());
+                trans = tagObj.getTransRaw();
+//            如果翻译结果为纯英文则放弃原生翻译 除非原tag也是纯英文
+                if (PATTERN_ONLY_WORD.matcher(trans).find() && !PATTERN_ONLY_WORD.matcher(tag).find()) {
+                    trans = tag;
+                }
             }
+            trans = PixivTag.replace(trans);
+            log.info("添加字典 {} {}", tag, trans);
+            dic.put(tag, trans);
         });
         return dic;
     }
@@ -121,7 +137,7 @@ public class PixivTagServiceImpl extends ServiceImpl<PixivTagDao, PixivTag> impl
     public String translate(String tagString, String delimiter) {
         List<String> tagList = Arrays.asList(tagString.split(DELIMITER));
 //        字典
-        HashMap<String, String> tagsMap = findDic(tagList);
+        TreeMap<String, String> tagsMap = findDic(tagList);
 //        返回翻译后的标签
         return tagList.stream()
                 .map(tag -> tagsMap.getOrDefault(tag, tag))
@@ -131,5 +147,10 @@ public class PixivTagServiceImpl extends ServiceImpl<PixivTagDao, PixivTag> impl
                 .map(tag -> tag.replace(" ", "_"))
                 .distinct()
                 .collect(Collectors.joining(delimiter));
+    }
+
+    public static void main(String[] args) {
+        String s = "AR小隊";
+        System.out.println(JianFan.f2j(s));
     }
 }

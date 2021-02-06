@@ -251,38 +251,39 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
             detailQueryMap.put(pid, dq);
             detailExecutor.execute(() -> {
                 List<String> callbacks = Arrays.asList(dq.getCallback().split(","));
-                try {
-                    PixivIllustDetail detail = pixivIllustDetailService.getDetail(pid).get(60, TimeUnit.SECONDS);
+//                try {
+//                    PixivIllustDetail detail = pixivIllustDetailService.getDetail(pid).get(60, TimeUnit.SECONDS);
+                PixivIllustDetail detail = pixivIllustDetailService.findOne(pid);
 //                  回调任务中有添加tag 添加
-                    if (callbacks.contains(CALLBACK_TASK_ADD_TAG)) {
-                        pixivTagService.addTag(detail, dq.getUserId());
-                    }
+                if (callbacks.contains(CALLBACK_TASK_ADD_TAG)) {
+                    pixivTagService.addTag(detail, dq.getUserId());
+                }
 //                    回调任务中有下载 下载
-                    if (callbacks.contains(CALLBACK_TASK_DOWNLOAD)) {
-                        for (String url : detail.getUrlList()) {
-                            Matcher matcher = PIXIV_ILLUST_FULL_NAME.matcher(url);
-                            if (matcher.find()) {
-                                String uuid = matcher.group();
-                                String path = "f:/illust/未分类/";
-                                String fileName = url.substring(url.lastIndexOf("/") + 1);
-                                String type = "3.未分类";
-                                int priority = 5;
-                                downloadQueryService.saveOne(new DownloadQuery(uuid, path, fileName, url, type, priority));
-                            }
+                if (callbacks.contains(CALLBACK_TASK_DOWNLOAD)) {
+                    for (String url : detail.getUrlList()) {
+                        Matcher matcher = PIXIV_ILLUST_FULL_NAME.matcher(url);
+                        if (matcher.find()) {
+                            String uuid = matcher.group();
+                            String path = "f:/illust/未分类/";
+                            String fileName = url.substring(url.lastIndexOf("/") + 1);
+                            String type = "3.未分类";
+                            int priority = 5;
+                            downloadQueryService.saveOne(new DownloadQuery(uuid, path, fileName, url, type, priority));
                         }
                     }
-//                    删除队列中的详情任务
-                    if (detailQueryService.deleteById(pid)) {
-                        detailQueryMap.remove(pid);
-                    }
-
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (TimeoutException e) {
-                    e.printStackTrace();
                 }
+//                    删除队列中的详情任务
+                if (detailQueryService.deleteById(pid)) {
+                    detailQueryMap.remove(pid);
+                }
+//
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                } catch (ExecutionException e) {
+//                    e.printStackTrace();
+//                } catch (TimeoutException e) {
+//                    e.printStackTrace();
+//                }
             });
         });
 

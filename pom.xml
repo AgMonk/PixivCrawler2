@@ -98,6 +98,13 @@
             <scope>compile</scope>
         </dependency>
 
+        <!--简繁转换工具-->
+        <dependency>
+            <groupId>org.nlpcn</groupId>
+            <artifactId>nlp-lang</artifactId>
+            <version>1.7.6</version>
+        </dependency>
+
     </dependencies>
 
     <build>

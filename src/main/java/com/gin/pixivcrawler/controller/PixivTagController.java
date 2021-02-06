@@ -2,13 +2,18 @@ package com.gin.pixivcrawler.controller;
 
 import com.gin.pixivcrawler.entity.response.Res;
 import com.gin.pixivcrawler.service.PixivTagService;
+import com.gin.pixivcrawler.utils.StringUtils;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author bx002
@@ -16,7 +21,9 @@ import java.util.List;
  */
 @RequestMapping("tag")
 @RestController
+@Slf4j
 public class PixivTagController {
+    public static final Pattern PATTERN_ONLY_WORD = Pattern.compile("^[\\w+]$");
     private final PixivTagService pixivTagService;
 
     public PixivTagController(PixivTagService pixivTagService) {
@@ -31,7 +38,7 @@ public class PixivTagController {
      * @date 2021/2/5 16:31
      */
     @RequestMapping("getDic")
-    public Res<HashMap<String, String>> getDic() {
+    public Res<TreeMap<String, String>> getDic() {
         return Res.success(pixivTagService.findDic(null));
     }
 
@@ -46,6 +53,26 @@ public class PixivTagController {
      */
     @RequestMapping("findListBy")
     public Res<List<PixivTag>> findListBy(@RequestParam(defaultValue = "0") Integer mode, String keyword) {
-        return Res.success(pixivTagService.findListBy(mode, keyword));
+        TreeMap<String, String> dic = pixivTagService.findDic(null);
+        return Res.success(pixivTagService.findListBy(mode, keyword).stream().peek(tag -> {
+            tag.addRecTrans(getRecommend(tag.getTag(), dic));
+            String transRaw = tag.getTransRaw();
+            if (!StringUtils.isEmpty(transRaw)) {
+                tag.addRecTrans(getRecommend(transRaw, dic));
+            }
+        }).collect(Collectors.toList()));
+    }
+
+    private static String getRecommend(String tag, TreeMap<String, String> dic) {
+        String t = tag;
+        for (Map.Entry<String, String> entry : dic.entrySet()) {
+            String k = entry.getKey();
+            String v = entry.getValue();
+            if (t.contains(k)) {
+                log.info("替换 {}->{}", k, v);
+                t = t.replace(k, v);
+            }
+        }
+        return t;
     }
 }

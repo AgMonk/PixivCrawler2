@@ -8,9 +8,12 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.gin.pixivcrawler.utils.StringUtils;
 import lombok.Data;
+import org.nlpcn.commons.lang.jianfan.JianFan;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Pixiv标签
@@ -47,6 +50,19 @@ public class PixivTag implements Serializable {
     String transCustomize;
     @TableField(insertStrategy = FieldStrategy.IGNORED)
     String transRaw;
+    @TableField(exist = false)
+    List<String> recommendTranslations;
+
+    public void addRecTrans(String s) {
+        if (StringUtils.isEmpty(s)) {
+            return;
+        }
+        s = replace(s);
+        recommendTranslations = recommendTranslations == null ? new ArrayList<>() : recommendTranslations;
+        if (!recommendTranslations.contains(s)) {
+            recommendTranslations.add(s);
+        }
+    }
 
     public void setTransCustomize(String transCustomize) {
         if (StringUtils.isEmpty(transCustomize)) {
@@ -77,5 +93,13 @@ public class PixivTag implements Serializable {
     @Override
     public int hashCode() {
         return tag != null ? tag.hashCode() : 0;
+    }
+
+    public static String replace(String s) {
+        return JianFan.f2j(s)
+                .replace("（", "(")
+                .replace("）", ")")
+                .replace(" ", "")
+                ;
     }
 }
