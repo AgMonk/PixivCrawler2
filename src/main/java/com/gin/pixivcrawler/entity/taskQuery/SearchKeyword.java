@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.gin.pixivcrawler.utils.StringUtils;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
@@ -35,6 +36,16 @@ public class SearchKeyword implements Serializable {
      */
     @TableField(updateStrategy = FieldStrategy.IGNORED)
     String hasKeywords;
+
+    public void setHasAllKeywords(String hasAllKeywords) {
+        this.hasAllKeywords = StringUtils.isEmpty(hasAllKeywords)?null:hasAllKeywords;
+    }
+    public void setHasNotKeywords(String hasNotKeywords) {
+        this.hasNotKeywords = StringUtils.isEmpty(hasNotKeywords)?null:hasNotKeywords;
+    }
+    public void setHasKeywords(String hasKeywords) {
+        this.hasKeywords =  StringUtils.isEmpty(hasKeywords)?null:hasKeywords;
+    }
 
     public String getKeywords(){
         StringBuilder sb = new StringBuilder();
