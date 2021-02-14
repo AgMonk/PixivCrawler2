@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.gin.pixivcrawler.dao.PixivTagDao;
 import com.gin.pixivcrawler.entity.taskQuery.AddTagQuery;
 import com.gin.pixivcrawler.service.queryService.AddTagQueryService;
+import com.gin.pixivcrawler.utils.SpringContextUtil;
 import com.gin.pixivcrawler.utils.StringUtils;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTag;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
@@ -77,6 +78,8 @@ public class PixivTagServiceImpl extends ServiceImpl<PixivTagDao, PixivTag> impl
     public void addTag(PixivIllustDetail detail, Long userId) {
         String tagTranslatedString = translate(detail.getTagString(), " ");
         Long pid = detail.getId();
+        PixivIllustDetailService detailService = SpringContextUtil.getBean(PixivIllustDetailService.class);
+        detailService.setIllustBookmarked(pid);
         addTagQueryService.saveOne(new AddTagQuery(pid, userId, tagTranslatedString));
     }
 

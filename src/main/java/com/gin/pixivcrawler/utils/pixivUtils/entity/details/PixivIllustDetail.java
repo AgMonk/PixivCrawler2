@@ -11,6 +11,7 @@ import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivUrls;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @Data
+@Accessors(chain = true)
 @TableName("t_illust_detail")
 public class PixivIllustDetail extends PixivDetailBase implements Serializable {
     public final static Pattern PIXIV_ILLUST_FULL_NAME = Pattern.compile("\\d+_p\\d+");

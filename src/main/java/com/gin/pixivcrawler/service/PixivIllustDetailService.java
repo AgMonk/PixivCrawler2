@@ -19,4 +19,6 @@ public interface PixivIllustDetailService extends BaseSelectService<PixivIllustD
      * @date 2021/2/3 11:08
      */
     Future<PixivIllustDetail> getDetail(long pid);
+
+    void setIllustBookmarked(long pid);
 }

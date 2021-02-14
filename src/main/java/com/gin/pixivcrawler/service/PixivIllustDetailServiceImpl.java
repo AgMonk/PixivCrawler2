@@ -58,6 +58,13 @@ public class PixivIllustDetailServiceImpl extends ServiceImpl<PixivIllustDetailD
     }
 
     @Override
+    public void setIllustBookmarked(long pid) {
+        PixivIllustDetail detail = new PixivIllustDetail();
+        detail.setId(pid).setBookmarked(1);
+        updateById(detail);
+    }
+
+    @Override
     public PixivIllustDetail findOne(Serializable id) {
         log.info("请求详情 pid = {} ", id);
         long start = System.currentTimeMillis();
@@ -106,7 +113,11 @@ public class PixivIllustDetailServiceImpl extends ServiceImpl<PixivIllustDetailD
      */
     private static boolean isAvailable(PixivIllustDetail detail) {
         long now = System.currentTimeMillis() / 1000;
-        return detail != null && detail.getCheckSeconds() > now - EXPIRED && detail.getBookmarkCount() > MIN_BOOKMARK_COUNT;
+        return detail != null
+//                未过期
+                && detail.getCheckSeconds() > now - EXPIRED
+//                收藏数较多或已收藏的
+                && (detail.getBookmarkCount() > MIN_BOOKMARK_COUNT || detail.getBookmarked() == 1);
     }
 
 

@@ -16,7 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 public class ApiFilter {
 
     @Bean
-    public Filter apiFilter(){
+    public Filter apiPrefixFilter(){
         return (request, response, filterChain) -> {
             HttpServletRequest httpRequest = (HttpServletRequest) request;
             String path = httpRequest.getRequestURI();

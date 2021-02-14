@@ -6,8 +6,10 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.gin.pixivcrawler.utils.TimeUtil;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 import java.io.Serializable;
+import java.nio.channels.Channel;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 
@@ -20,6 +22,7 @@ import static com.gin.pixivcrawler.utils.TimeUtil.ZONE_ID;
  * @date 2021/2/2 17:43
  */
 @Data
+@Accessors(chain = true)
 public class PixivDetailBase implements Serializable {
 
     /**
