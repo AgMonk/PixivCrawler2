@@ -149,7 +149,7 @@ public class PixivPost {
                 .addParam("s_mode", searchTitle ? "s_tc" : "s_tag")
                 .addParam("mode", mode)
                 .addParam("p", p)
-                .get(URL_SEARCH_ARTWORKS + URLEncoder.encode(keyword, StandardCharsets.UTF_8));
+                .get(URL_SEARCH_ARTWORKS + URLEncoder.encode(keyword, StandardCharsets.UTF_8).replace("+", "%20"));
 
 //        printJson(JSONObject.parseObject(result));
 

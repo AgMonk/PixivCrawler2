@@ -36,7 +36,6 @@ public class TestController {
     @RequestMapping("1")
     public Object test(Long pid) throws InterruptedException, ExecutionException, TimeoutException {
         PixivCookie pixivCookie = pixivCookieDao.selectById(57680761);
-
         PixivSearchResults search = PixivPost.search("春田", 1, pixivCookie.getCookie(), false, "all");
 
         return search;
