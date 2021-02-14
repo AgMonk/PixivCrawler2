@@ -3,6 +3,8 @@ package com.gin.pixivcrawler.service;
 import com.gin.pixivcrawler.entity.taskQuery.SearchKeyword;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivSearchResults;
 
+import java.util.List;
+
 /**
  * 搜索业务
  *
@@ -21,6 +23,13 @@ public interface PixivSearchService {
      * @date 2021/2/14 17:19
      */
     PixivSearchResults search(SearchKeyword keyword,long uid,int page);
+/**
+ * 查询所有搜索关键字
+ * @return java.util.List<com.gin.pixivcrawler.entity.taskQuery.SearchKeyword>
+ * @author Gin
+ * @date 2021/2/14 23:07
+ */
+    List<SearchKeyword> findAll();
 
     /**
      * 保存关键字

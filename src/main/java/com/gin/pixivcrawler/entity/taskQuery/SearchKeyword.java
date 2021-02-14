@@ -1,5 +1,7 @@
 package com.gin.pixivcrawler.entity.taskQuery;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -24,11 +26,14 @@ import java.util.stream.Collectors;
 public class SearchKeyword implements Serializable {
     @TableId
     String name;
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     String hasAllKeywords;
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     String hasNotKeywords;
     /**
      * 含有关键字 OR 连接
      */
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     String hasKeywords;
 
     public String getKeywords(){
@@ -42,6 +47,6 @@ public class SearchKeyword implements Serializable {
         if (hasNotKeywords!=null) {
             sb.append("-").append(hasNotKeywords.replace(" ", " -"));
         }
-        return sb.toString();
+        return sb.toString().trim();
     }
 }

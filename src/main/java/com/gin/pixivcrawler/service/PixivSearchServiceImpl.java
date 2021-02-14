@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail.DELIMITER;
 
@@ -42,6 +43,11 @@ public class PixivSearchServiceImpl extends ServiceImpl<SearchKeywordDao,SearchK
             detail.setTagsList(Arrays.asList(translate.split(DELIMITER)));
         });
         return results;
+    }
+
+    @Override
+    public List<SearchKeyword> findAll() {
+        return list();
     }
 
     @Override

@@ -39,4 +39,9 @@ public class SearchController {
         pixivSearchService.saveKeyword(keyword);
         return Res.success();
     }
+
+    @RequestMapping("findAllKeywords")
+    public Res<List<SearchKeyword>> findAllKeywords(){
+        return  Res.success(pixivSearchService.findAll());
+    }
 }
