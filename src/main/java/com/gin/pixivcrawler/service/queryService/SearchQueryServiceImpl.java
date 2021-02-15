@@ -35,6 +35,13 @@ public class SearchQueryServiceImpl extends ServiceImpl<SearchQueryDao,SearchQue
     }
 
     @Override
+    public List<SearchQuery> findAll() {
+        QueryWrapper<SearchQuery> qw = new QueryWrapper<>();
+        qw.orderByAsc("timestamp");
+        return list(qw);
+    }
+
+    @Override
     public void delById(String uuid) {
         removeById(uuid);
     }

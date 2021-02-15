@@ -2,7 +2,11 @@ package com.gin.pixivcrawler.controller;
 
 import com.gin.pixivcrawler.entity.response.Res;
 import com.gin.pixivcrawler.entity.SearchKeyword;
+import com.gin.pixivcrawler.entity.taskQuery.SearchQuery;
 import com.gin.pixivcrawler.service.PixivSearchService;
+import com.gin.pixivcrawler.service.ScheduledTasksService;
+import com.gin.pixivcrawler.service.ScheduledTasksServiceImpl;
+import com.gin.pixivcrawler.service.queryService.SearchQueryService;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivSearchResults;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,9 +23,13 @@ import java.util.List;
 @RestController
 public class SearchController {
     private final PixivSearchService pixivSearchService;
+    private final ScheduledTasksService scheduledTasksService;
+    private final SearchQueryService searchQueryService;
 
-    public SearchController(PixivSearchService pixivSearchService) {
+    public SearchController(PixivSearchService pixivSearchService, ScheduledTasksService scheduledTasksService, SearchQueryService searchQueryService) {
         this.pixivSearchService = pixivSearchService;
+        this.scheduledTasksService = scheduledTasksService;
+        this.searchQueryService = searchQueryService;
     }
 
     @RequestMapping("search")
@@ -38,5 +46,11 @@ public class SearchController {
     @RequestMapping("findAllKeywords")
     public Res<List<SearchKeyword>> findAllKeywords(){
         return  Res.success(pixivSearchService.findAll());
+    }
+
+    @RequestMapping("autoSearch")
+    public Res<Void> autoSearch(){
+        scheduledTasksService.autoSearch();
+        return Res.success();
     }
 }

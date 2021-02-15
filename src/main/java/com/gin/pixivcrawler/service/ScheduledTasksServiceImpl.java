@@ -52,7 +52,7 @@ import static com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDe
 @Slf4j
 @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
 public class ScheduledTasksServiceImpl implements ScheduledTasksService {
-    public static final int ARIA_2_QUERY_MAX_COUNT = 30;
+    public static final int ARIA_2_QUERY_MAX_COUNT = 10;
     public static final int DETAIL_QUERY_MAX_COUNT = 30;
     public static final String CALLBACK_TASK_ADD_TAG = "添加标签";
     public static final String CALLBACK_TASK_DOWNLOAD = "下载";
@@ -290,14 +290,14 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
 //                回调任务中有 搜索下载
                 if (callbacks.contains(CALLBACK_TASK_SEARCH_DOWNLOAD)) {
 //                    详情未收藏，且收藏数大于规定值
-                    if (detail.getBookmarked() != 1 && detail.getBookmarkCount() > MIN_BOOKMARK_COUNT) {
+                    if (detail.getBookmarked() == null && detail.getBookmarkCount() > MIN_BOOKMARK_COUNT) {
 //                        设置为已收藏
                         pixivIllustDetailService.setIllustBookmarked(detail.getId());
                         for (String url : detail.getUrlList()) {
                             Matcher matcher = PIXIV_ILLUST_FULL_NAME.matcher(url);
                             if (matcher.find()) {
                                 String uuid = matcher.group();
-                                String path = "f:/illust/搜索下载/"+dqType.split(":")[1];
+                                String path = "f:/illust/搜索下载/" + dqType.split(":")[1];
                                 String fileName = url.substring(url.lastIndexOf("/") + 1);
                                 String type = "2.搜索下载";
                                 int priority = 4;
@@ -336,18 +336,19 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
 
     @Async("searchExecutor")
     @Scheduled(cron = "5 0/5 * * * ?")
-    public void search() {
+    @Override
+    public void autoSearch() {
         SearchQuery query = searchQueryService.findOne();
         if (query == null) {
             return;
         }
         PixivSearchResults results = pixivSearchService.search(query.getKeyword(), query.getUid(), query.getPage());
         List<DetailQuery> list = results.getIllustManga().getDetails().stream()
-                .filter(d -> d.getBookmarked() != 1)
+                .filter(d -> d.getBookmarked() == null)
                 .map(PixivDetailBase::getId)
                 .map(pid -> new DetailQuery(
                         pid, USER_ID
-                        , "2.搜索详情:"+query.getName()
+                        , "2.搜索详情:" + query.getName()
                         , 4
                         , CALLBACK_TASK_SEARCH_DOWNLOAD
                 )).collect(Collectors.toList());
@@ -362,6 +363,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                 .setAddTagQuery(addTagQueryMap.values())
                 .setDownloadQuery(downloadQueryService.findSortedList(99, null))
                 .setDetailQuery(detailQueryService.findSortedList(99, null))
+                .setSearchQuery(searchQueryService.findAll())
                 ;
     }
 }

@@ -1,6 +1,8 @@
 package com.gin.pixivcrawler.service;
 
 import com.gin.pixivcrawler.entity.StatusReport;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -14,6 +16,10 @@ import java.util.concurrent.TimeoutException;
 public interface ScheduledTasksService {
 
     void downloadUntagged() throws InterruptedException, ExecutionException, TimeoutException;
+
+    @Async("searchExecutor")
+    @Scheduled(cron = "5 0/5 * * * ?")
+    void autoSearch();
 
     /**
      * 状态报告

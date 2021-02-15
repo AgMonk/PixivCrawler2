@@ -3,6 +3,7 @@ package com.gin.pixivcrawler.entity;
 import com.gin.pixivcrawler.entity.taskQuery.AddTagQuery;
 import com.gin.pixivcrawler.entity.taskQuery.DetailQuery;
 import com.gin.pixivcrawler.entity.taskQuery.DownloadQuery;
+import com.gin.pixivcrawler.entity.taskQuery.SearchQuery;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -23,6 +24,7 @@ public class StatusReport implements Serializable {
     Collection<AddTagQuery> addTagQuery;
     List<DownloadQuery> downloadQuery;
     List<DetailQuery> detailQuery;
+    List<SearchQuery> searchQuery;
 
     public static StatusReport create() {
         return new StatusReport();
