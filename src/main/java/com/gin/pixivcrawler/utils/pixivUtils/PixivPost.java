@@ -53,7 +53,7 @@ public class PixivPost {
     public static PixivIllustDetail getIllustDetail(long pid, String cookie) {
         String msg = "请求作品详情 pid = {}";
         long start = System.currentTimeMillis();
-        LOG.info(msg, pid);
+        LOG.debug(msg, pid);
         String result = GetRequest.create().addCookie(cookie).get(String.format(URL_ILLUST_DETAIL, pid));
         PixivIllustDetail body = null;
         try {
@@ -61,7 +61,7 @@ public class PixivPost {
         } catch (RuntimeException e) {
             LOG.warn("pid = {} {}", pid, e.getMessage());
         }
-        LOG.info(msg + TIME_COST, pid, RequestBase.timeCost(start));
+        LOG.debug(msg + TIME_COST, pid, RequestBase.timeCost(start));
         return body;
     }
 

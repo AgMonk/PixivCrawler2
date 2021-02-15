@@ -156,7 +156,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
      * @author bx002
      * @date 2021/2/4 16:37
      */
-    @Scheduled(cron = "1/15 * * * * ?")
+    @Scheduled(cron = "1/8 * * * * ?")
     public void addDownloadQuery2Aria2() {
 //        获取当前正在进行的任务数量
         List<Aria2Quest> activeQuests = tellActive().getResult();

@@ -30,7 +30,7 @@ public class ApiFilter {
                     //替换掉前缀
                     path = path.replace(prefix, "");
                     //转发
-                    log.info("转发到 "+path);
+                    log.debug("转发到 "+path);
                     httpRequest.getRequestDispatcher(path).forward(request, response);
                     return;
                 }
