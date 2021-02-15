@@ -49,7 +49,6 @@ public class PixivIllustDetail extends PixivDetailBase implements Serializable {
      */
     private final static int ILLUST_TYPE_GIF = 2;
     public static final String IMG = "/img/";
-    public static final String DELIMITER = ",";
 
 
     /**

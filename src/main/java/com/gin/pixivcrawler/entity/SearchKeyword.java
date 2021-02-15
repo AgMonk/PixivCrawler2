@@ -1,4 +1,4 @@
-package com.gin.pixivcrawler.entity.taskQuery;
+package com.gin.pixivcrawler.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -37,9 +37,7 @@ public class SearchKeyword implements Serializable {
     @TableField(updateStrategy = FieldStrategy.IGNORED)
     String hasKeywords;
 
-    public void setHasAllKeywords(String hasAllKeywords) {
-        this.hasAllKeywords = StringUtils.isEmpty(hasAllKeywords)?null:hasAllKeywords;
-    }
+    public void setHasAllKeywords(String hasAllKeywords) { this.hasAllKeywords = StringUtils.isEmpty(hasAllKeywords)?null:hasAllKeywords; }
     public void setHasNotKeywords(String hasNotKeywords) {
         this.hasNotKeywords = StringUtils.isEmpty(hasNotKeywords)?null:hasNotKeywords;
     }

@@ -23,7 +23,7 @@ import java.util.TreeMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail.DELIMITER;
+import static com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivDetailBase.DELIMITER;
 
 /**
  * @author bx002

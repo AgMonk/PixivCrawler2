@@ -1,15 +1,15 @@
 package com.gin.pixivcrawler.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivUser;
+import com.gin.pixivcrawler.entity.taskQuery.SearchQuery;
 import org.apache.ibatis.annotations.CacheNamespace;
 import org.springframework.stereotype.Repository;
 
 /**
- * @author bx002
- * @date 2021/2/2 13:51
+ * @author Gin
+ * @date 2021/2/15 13:46
  */
 @Repository
 @CacheNamespace(flushInterval = 60 * 1000)
-public interface PixivUserDao extends BaseMapper<PixivUser> {
+public interface SearchQueryDao extends BaseMapper<SearchQuery> {
 }

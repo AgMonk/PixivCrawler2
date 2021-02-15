@@ -25,6 +25,7 @@ import static com.gin.pixivcrawler.utils.TimeUtil.ZONE_ID;
 @Accessors(chain = true)
 public class PixivDetailBase implements Serializable {
 
+    public static final String DELIMITER = ",";
     /**
      * 收藏数据
      */

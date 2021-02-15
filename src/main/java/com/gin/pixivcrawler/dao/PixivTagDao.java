@@ -11,6 +11,6 @@ import org.springframework.stereotype.Repository;
  * @date 2021/2/2 13:51
  */
 @Repository
-@CacheNamespace
+@CacheNamespace(flushInterval = 60 * 1000)
 public interface PixivTagDao extends BaseMapper<PixivTag> {
 }

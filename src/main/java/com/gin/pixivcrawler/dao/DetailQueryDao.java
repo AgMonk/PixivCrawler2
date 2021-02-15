@@ -10,6 +10,6 @@ import org.springframework.stereotype.Repository;
  * @date 2021/2/5 11:33
  */
 @Repository
-@CacheNamespace
+@CacheNamespace(flushInterval = 60 * 1000)
 public interface DetailQueryDao extends BaseMapper<DetailQuery> {
 }

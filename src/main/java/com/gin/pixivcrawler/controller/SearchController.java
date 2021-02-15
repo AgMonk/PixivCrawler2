@@ -1,17 +1,12 @@
 package com.gin.pixivcrawler.controller;
 
-import com.gin.pixivcrawler.dao.PixivCookieDao;
 import com.gin.pixivcrawler.entity.response.Res;
-import com.gin.pixivcrawler.entity.taskQuery.SearchKeyword;
+import com.gin.pixivcrawler.entity.SearchKeyword;
 import com.gin.pixivcrawler.service.PixivSearchService;
-import com.gin.pixivcrawler.service.PixivTagService;
-import com.gin.pixivcrawler.utils.pixivUtils.PixivPost;
-import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivCookie;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivSearchResults;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**

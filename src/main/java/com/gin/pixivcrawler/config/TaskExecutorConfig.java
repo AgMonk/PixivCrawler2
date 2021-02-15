@@ -25,6 +25,10 @@ public class TaskExecutorConfig {
     public ThreadPoolTaskExecutor tagExecutor() {
         return TasksUtil.getExecutor("tag", 1);
     }
+@Bean
+    public ThreadPoolTaskExecutor searchExecutor() {
+        return TasksUtil.getExecutor("search", 1);
+    }
 
     @Bean
     public ThreadPoolTaskExecutor mainExecutor() {

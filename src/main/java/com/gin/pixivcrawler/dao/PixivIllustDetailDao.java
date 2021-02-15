@@ -10,6 +10,6 @@ import org.springframework.stereotype.Repository;
  * @date 2021/2/2 13:17
  */
 @Repository
-@CacheNamespace
+@CacheNamespace(flushInterval = 60 * 1000)
 public interface PixivIllustDetailDao extends BaseMapper<PixivIllustDetail> {
 }

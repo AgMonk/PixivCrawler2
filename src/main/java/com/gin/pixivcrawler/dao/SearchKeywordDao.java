@@ -1,7 +1,7 @@
 package com.gin.pixivcrawler.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.gin.pixivcrawler.entity.taskQuery.SearchKeyword;
+import com.gin.pixivcrawler.entity.SearchKeyword;
 import org.apache.ibatis.annotations.CacheNamespace;
 import org.springframework.stereotype.Repository;
 
@@ -10,6 +10,6 @@ import org.springframework.stereotype.Repository;
  * @date 2021/2/14 15:02
  */
 @Repository
-@CacheNamespace
+@CacheNamespace(flushInterval = 60 * 1000)
 public interface SearchKeywordDao extends BaseMapper<SearchKeyword> {
 }

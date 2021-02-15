@@ -3,7 +3,7 @@ package com.gin.pixivcrawler.service;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.gin.pixivcrawler.dao.PixivCookieDao;
 import com.gin.pixivcrawler.dao.SearchKeywordDao;
-import com.gin.pixivcrawler.entity.taskQuery.SearchKeyword;
+import com.gin.pixivcrawler.entity.SearchKeyword;
 import com.gin.pixivcrawler.utils.pixivUtils.PixivPost;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivCookie;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivSearchResults;
@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail.DELIMITER;
+import static com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivDetailBase.DELIMITER;
 
 /**
  * @author Gin
@@ -36,14 +36,20 @@ public class PixivSearchServiceImpl extends ServiceImpl<SearchKeywordDao,SearchK
 
     @Override
     public PixivSearchResults search(SearchKeyword keyword, long uid, int page) {
+        return search(keyword.getKeywords(), uid, page);
+    }
+    @Override
+    public PixivSearchResults search(String keyword, long uid, int page) {
         PixivCookie pixivCookie = pixivCookieDao.selectById(uid);
-        PixivSearchResults results = PixivPost.search(keyword.getKeywords(), page, pixivCookie.getCookie(), false, "all");
+        PixivSearchResults results = PixivPost.search(keyword, page, pixivCookie.getCookie(), false, "all");
         results.getIllustManga().getDetails().forEach(detail->{
             String translate = pixivTagService.translate(detail.getTagString(), DELIMITER);
             detail.setTagsList(Arrays.asList(translate.split(DELIMITER)));
         });
+        log.info("获得搜索结果 {} 个 关键字 : {}",results.getIllustManga().getTotal() , keyword);
         return results;
     }
+
 
     @Override
     public List<SearchKeyword> findAll() {
