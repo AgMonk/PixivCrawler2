@@ -65,4 +65,9 @@ public class DownloadQueryServiceImpl extends ServiceImpl<DownloadQueryDao, Down
         qw.last(String.format("limit %d,%d", 0, limit));
         return list(qw);
     }
+
+    @Override
+    public void saveOne(String uuid, String path, String fileName, String url, String type, Integer priority) {
+        save(new DownloadQuery(uuid, path, fileName, url, type, priority));
+    }
 }

@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivDetailBase.DELIMITER;
+import static com.gin.pixivcrawler.entity.ConstantValue.DELIMITER_COMMA;
 
 /**
  * @author Gin
@@ -43,8 +43,8 @@ public class PixivSearchServiceImpl extends ServiceImpl<SearchKeywordDao,SearchK
         PixivCookie pixivCookie = pixivCookieDao.selectById(uid);
         PixivSearchResults results = PixivPost.search(keyword, page, pixivCookie.getCookie(), false, "all");
         results.getIllustManga().getDetails().forEach(detail->{
-            String translate = pixivTagService.translate(detail.getTagString(), DELIMITER);
-            detail.setTagsList(Arrays.asList(translate.split(DELIMITER)));
+            String translate = pixivTagService.translate(detail.getTagString(), DELIMITER_COMMA);
+            detail.setTagsList(Arrays.asList(translate.split(DELIMITER_COMMA)));
         });
         log.info("获得搜索结果 {} 个 关键字 : {}",results.getIllustManga().getTotal() , keyword);
         return results;

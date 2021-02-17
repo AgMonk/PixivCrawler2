@@ -26,6 +26,9 @@ public class GetRequest implements RequestBase<GetRequest> {
     private String decodeEnc = StandardCharsets.UTF_8.toString();
     private String encodeEnc = StandardCharsets.UTF_8.toString();
 
+    private String proxyHost = null;
+    private int proxyPort = 10809;
+
 
     public static GetRequest create() {
         return new GetRequest();

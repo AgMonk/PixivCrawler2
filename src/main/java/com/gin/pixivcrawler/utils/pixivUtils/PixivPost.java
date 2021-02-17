@@ -21,6 +21,8 @@ import static com.gin.pixivcrawler.utils.JsonUtil.printJson;
  * @date 2021/2/1 17:43
  */
 public class PixivPost {
+    private static String proxyHost = null;
+//    private static String proxyHost = "127.0.0.1";
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(PixivPost.class);
     public static final String DOMAIN = "https://www.pixiv.net";
     /**
@@ -54,7 +56,9 @@ public class PixivPost {
         String msg = "请求作品详情 pid = {}";
         long start = System.currentTimeMillis();
         LOG.debug(msg, pid);
-        String result = GetRequest.create().addCookie(cookie).get(String.format(URL_ILLUST_DETAIL, pid));
+        String result = GetRequest.create()
+                .setProxyHost(proxyHost)
+                .addCookie(cookie).get(String.format(URL_ILLUST_DETAIL, pid));
         PixivIllustDetail body = null;
         try {
             body = getBody(result, PixivIllustDetail.class);
@@ -81,7 +85,9 @@ public class PixivPost {
         String msg = "请求收藏作品 userID = {} tag = {} offset = {} limit = {}";
         long start = System.currentTimeMillis();
         LOG.info(msg, userId, tag, offset, limit);
-        String result = GetRequest.create().addCookie(cookie)
+        String result = GetRequest.create()
+                .setProxyHost(proxyHost)
+                .addCookie(cookie)
                 .addParam("lang", "zh")
                 .addParam("rest", "show")
                 .addParam("offset", offset)
@@ -112,6 +118,7 @@ public class PixivPost {
         tags = tags.replace(",", " ");
         LOG.info("给作品添加tag {} -> {}", pid, tags);
         PostRequest.create()
+                .setProxyHost(proxyHost)
                 .setMaxTimes(1)
                 .setTimeout(3)
                 .addCookie(cookie)
@@ -145,6 +152,7 @@ public class PixivPost {
     public static PixivSearchResults search(String keyword, Integer p, String cookie, boolean searchTitle, String mode) {
         LOG.info("搜索关键字 {}", keyword);
         String result = GetRequest.create()
+                .setProxyHost(proxyHost)
                 .addCookie(cookie)
                 .addParam("s_mode", searchTitle ? "s_tc" : "s_tag")
                 .addParam("mode", mode)

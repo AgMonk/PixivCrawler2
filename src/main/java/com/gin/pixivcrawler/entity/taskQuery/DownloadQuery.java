@@ -18,7 +18,6 @@ import java.io.Serializable;
 @TableName("t_query_download")
 @Accessors(chain = true)
 @NoArgsConstructor
-@AllArgsConstructor
 @Data
 public class DownloadQuery implements Serializable {
     @TableId
@@ -28,4 +27,13 @@ public class DownloadQuery implements Serializable {
     String url;
     String type;
     Integer priority;
+
+    public DownloadQuery(String uuid, String path, String fileName, String url, String type, Integer priority) {
+        this.uuid = uuid;
+        this.path = path;
+        this.fileName = fileName;
+        this.url = url;
+        this.type = type;
+        this.priority = priority;
+    }
 }

@@ -24,5 +24,17 @@ public interface DownloadQueryService extends BaseService<DownloadQuery> {
      * @date 2021/2/4 11:16
      */
     List<DownloadQuery> findSortedList(int limit, Collection<String> urlNotIn);
+    /**
+     * 添加一个下载队列
+     * @param uuid uuid
+* @param path 路径
+* @param fileName   文件名
+* @param url url
+* @param type 类型
+* @param priority    优先级
+     * @author Gin
+     * @date 2021/2/17 15:05
+     */
+    void saveOne(String uuid, String path, String fileName, String url, String type, Integer priority);
 
 }

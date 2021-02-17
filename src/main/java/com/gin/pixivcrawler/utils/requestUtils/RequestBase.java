@@ -1,13 +1,11 @@
 package com.gin.pixivcrawler.utils.requestUtils;
 
 import com.gin.pixivcrawler.utils.StringUtils;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpStatus;
+import org.apache.http.*;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -69,6 +67,14 @@ public interface RequestBase<T> {
         return 15;
     }
 
+    default String getProxyHost() {
+        return null;
+    }
+
+    default int getProxyPort() {
+        return 10809;
+    }
+
     /**
      * 创建请求方法
      *
@@ -119,8 +125,9 @@ public interface RequestBase<T> {
         RequestConfig config = RequestConfig.custom()
                 .setConnectionRequestTimeout(getTimeout() * k * 10)
                 .setConnectTimeout(getTimeout() * k)
-                .setSocketTimeout(getTimeout() * k).build();
-
+                .setSocketTimeout(getTimeout() * k)
+                .setProxy(getProxyHost()!=null? new HttpHost(getProxyHost(), getProxyPort()):null)
+                .build();
         return HttpClients.custom()
                 .setMaxConnTotal(100)
                 .setMaxConnPerRoute(100)
@@ -184,9 +191,9 @@ public interface RequestBase<T> {
     default Object execute(int i) {
         long start = System.currentTimeMillis();
         LOG.debug("第 {} 次请求 地址: {}", i, getMethod().getURI());
-
         CloseableHttpResponse response = null;
         try {
+
             response = getClient().execute(getMethod());
         } catch (SocketTimeoutException ignored) {
             LOG.debug("第 {} 次请求超时 地址: {}", i, getMethod().getURI());
@@ -198,7 +205,7 @@ public interface RequestBase<T> {
         }
         int statusCode = response.getStatusLine().getStatusCode();
 
-        if (statusCode == HttpStatus.SC_OK || statusCode /100==4) {
+        if (statusCode == HttpStatus.SC_OK || statusCode / 100 == 4) {
             LOG.debug("第 {} 次请求 成功 地址: {} 耗时：{}", i, getMethod().getURI(), timeCost(start));
             return handleEntity(response.getEntity());
         } else if (statusCode == HttpStatus.SC_MOVED_TEMPORARILY) {

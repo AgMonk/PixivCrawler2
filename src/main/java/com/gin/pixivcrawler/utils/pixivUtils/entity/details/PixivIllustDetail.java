@@ -4,6 +4,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.gin.pixivcrawler.entity.ConstantValue;
 import com.gin.pixivcrawler.utils.TimeUtil;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTag;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTagsInDetail;
@@ -114,8 +115,8 @@ public class PixivIllustDetail extends PixivDetailBase implements Serializable {
 
     public void setTagsInDetail(PixivTagsInDetail tagsInDetail) {
         this.tagsInDetail = tagsInDetail;
-        this.tagString = tagsInDetail.getTags().stream().map(PixivTag::getTag).collect(Collectors.joining(DELIMITER));
-        this.tagTransString = tagsInDetail.getTags().stream().map(PixivTag::getTransRaw).collect(Collectors.joining(DELIMITER));
+        this.tagString = tagsInDetail.getTags().stream().map(PixivTag::getTag).collect(Collectors.joining(ConstantValue.DELIMITER_COMMA));
+        this.tagTransString = tagsInDetail.getTags().stream().map(PixivTag::getTransRaw).collect(Collectors.joining(ConstantValue.DELIMITER_COMMA));
     }
 
     @JSONField(serialize = false)

@@ -23,7 +23,7 @@ import java.util.TreeMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivDetailBase.DELIMITER;
+import static com.gin.pixivcrawler.entity.ConstantValue.DELIMITER_COMMA;
 
 /**
  * @author bx002
@@ -140,7 +140,7 @@ public class PixivTagServiceImpl extends ServiceImpl<PixivTagDao, PixivTag> impl
 
     @Override
     public String translate(String tagString, String delimiter) {
-        List<String> tagList = Arrays.asList(tagString.split(DELIMITER));
+        List<String> tagList = Arrays.asList(tagString.split(DELIMITER_COMMA));
 //        字典
         TreeMap<String, String> tagsMap = findDic(tagList);
 //        返回翻译后的标签

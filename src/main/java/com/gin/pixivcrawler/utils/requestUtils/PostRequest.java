@@ -37,7 +37,8 @@ public class PostRequest implements RequestBase<PostRequest> {
     private int timeout = 10;
     private String decodeEnc = StandardCharsets.UTF_8.toString();
     private String encodeEnc = StandardCharsets.UTF_8.toString();
-
+    private String proxyHost = null;
+    private int proxyPort = 10809;
 
     public static PostRequest create() {
         return new PostRequest();
