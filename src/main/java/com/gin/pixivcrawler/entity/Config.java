@@ -26,4 +26,8 @@ public class Config implements Serializable {
     Integer queryMaxOfAria2 = 10;
     Integer queryMaxOfDetail = 30;
     String rootPath = "c:/illust";
+    /**
+     * 下载模式 0 = 直接访问 1 = 10809代理 2 = pixiv.cat代理
+     */
+    Integer downloadMode = 0;
 }

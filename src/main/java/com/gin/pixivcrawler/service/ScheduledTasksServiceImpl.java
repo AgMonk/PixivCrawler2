@@ -193,8 +193,14 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
             option.setDir(downloadQuery.getPath())
                     .setFileName(downloadQuery.getFileName())
                     .setReferer("*")
-//                    .setHttpsProxy("http://127.0.0.1:10809/")
             ;
+            Integer mode = configService.getConfig().getDownloadMode();
+            switch (mode){
+                case 2:downloadQuery.setUrl(downloadQuery.getUrl().replace(DOMAIN_I_PXIMG_NET,NGINX_I_PIXIV_CAT));break;
+                case 1:option.setHttpsProxy("http://127.0.0.1:10809/");break;
+                default:break;
+            }
+
             if (addUri(downloadQuery.getUrl(), option).getError() == null) {
                 count++;
             }

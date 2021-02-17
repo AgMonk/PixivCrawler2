@@ -3,6 +3,7 @@ package com.gin.pixivcrawler.service.queryService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.gin.pixivcrawler.dao.DownloadQueryDao;
+import com.gin.pixivcrawler.entity.ConstantValue;
 import com.gin.pixivcrawler.entity.taskQuery.DownloadQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.gin.pixivcrawler.entity.ConstantValue.*;
 
 /**
  * @author bx002
@@ -51,7 +55,10 @@ public class DownloadQueryServiceImpl extends ServiceImpl<DownloadQueryDao, Down
     @Override
     public boolean deleteByUrl(Collection<String> url) {
         QueryWrapper<DownloadQuery> qw = new QueryWrapper<>();
-        qw.in("url", url);
+        List<String> urls = url.stream()
+                .map(u -> u.replace(NGINX_I_PIXIV_CAT, DOMAIN_I_PXIMG_NET))
+                .collect(Collectors.toList());
+        qw.in("url", urls);
         return remove(qw);
     }
 

@@ -35,4 +35,6 @@ public class ConstantValue {
      * 详情类型:未分类
      */
     public static final String TYPE_OF_QUERY_UNTAGGED = "3.未分类";
+    public static final String NGINX_I_PIXIV_CAT = "i.pixiv.cat";
+    public static final String DOMAIN_I_PXIMG_NET = "i.pximg.net";
 }
