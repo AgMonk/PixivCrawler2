@@ -183,7 +183,9 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
             return;
         }
         List<DownloadQuery> sortedList = downloadQueryService.findSortedList(limit,
-                questsInQuery.stream().map(quest -> quest.getFiles().get(0).getUris().get(0).getUri()).collect(Collectors.toList()));
+                questsInQuery.stream()
+                        .map(quest -> quest.getFiles().get(0).getUris().get(0).getUri().replace(NGINX_I_PIXIV_CAT,DOMAIN_I_PXIMG_NET))
+                        .collect(Collectors.toList()));
         if (sortedList.size() == 0) {
             return;
         }
