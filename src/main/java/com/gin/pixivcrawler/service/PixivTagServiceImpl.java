@@ -103,15 +103,6 @@ public class PixivTagServiceImpl extends ServiceImpl<PixivTagDao, PixivTag> impl
             String transCustomize = tagObj.getTransCustomize();
             String tag = tagObj.getTag();
             String trans = transCustomize;
-//            if (transCustomize != null) {
-//                trans = transCustomize;
-//            } else {
-//                trans = tagObj.getTransRaw();
-////            如果翻译结果为纯英文则放弃原生翻译 除非原tag也是纯英文
-//                if (PATTERN_ONLY_WORD.matcher(trans).find() && !PATTERN_ONLY_WORD.matcher(tag).find()) {
-//                    trans = tag;
-//                }
-//            }
             trans = PixivTag.replace(trans);
             dic.put(tag, trans);
         });

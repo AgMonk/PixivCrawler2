@@ -100,6 +100,8 @@ public class PixivTag implements Serializable {
         return JianFan.f2j(s)
                 .replace("（", "(")
                 .replace("）", ")")
+                .replace("#", "")
+                .replace("*", "")
                 .replace(" ", "")
                 ;
     }
