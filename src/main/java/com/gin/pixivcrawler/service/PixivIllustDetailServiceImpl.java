@@ -99,7 +99,9 @@ public class PixivIllustDetailServiceImpl extends ServiceImpl<PixivIllustDetailD
             List<PixivTag> tags = detail.getTagsInDetail().getTags();
             pixivTagService.saveList(tags);
         }
-        log.debug("获得详情 pid = {} 耗时：{}", id, RequestBase.timeCost(start));
+        if (detail != null) {
+            log.debug("获得详情 pid = {} 耗时：{}", id, RequestBase.timeCost(start));
+        }
         return detail;
     }
 
@@ -117,7 +119,7 @@ public class PixivIllustDetailServiceImpl extends ServiceImpl<PixivIllustDetailD
 //                未过期
                 && detail.getCheckSeconds() > now - EXPIRED
 //                收藏数较多或已收藏的
-                && (detail.getBookmarkCount() > MIN_BOOKMARK_COUNT || detail.getBookmarked() !=null );
+                && (detail.getBookmarkCount() > MIN_BOOKMARK_COUNT || detail.getBookmarked() != null);
     }
 
 

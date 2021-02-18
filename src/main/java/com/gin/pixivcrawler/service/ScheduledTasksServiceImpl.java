@@ -1,7 +1,6 @@
 package com.gin.pixivcrawler.service;
 
 import com.gin.pixivcrawler.dao.PixivCookieDao;
-import com.gin.pixivcrawler.entity.ConstantValue;
 import com.gin.pixivcrawler.entity.SearchKeyword;
 import com.gin.pixivcrawler.entity.StatusReport;
 import com.gin.pixivcrawler.entity.taskQuery.AddTagQuery;
@@ -42,7 +41,6 @@ import java.util.stream.Collectors;
 import static com.gin.pixivcrawler.entity.ConstantValue.*;
 import static com.gin.pixivcrawler.service.PixivIllustDetailServiceImpl.MIN_BOOKMARK_COUNT;
 import static com.gin.pixivcrawler.utils.ariaUtils.Aria2Request.*;
-import static com.gin.pixivcrawler.entity.ConstantValue.DELIMITER_COMMA;
 import static com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail.PIXIV_ILLUST_FULL_NAME;
 
 /**
@@ -96,22 +94,26 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         this.detailExecutor = detailExecutor;
         this.pixivCookieDao = pixivCookieDao;
     }
+
     /**
      * 获取用户uid
+     *
      * @return long
      * @author Gin
      * @date 2021/2/17 14:56
      */
-    private long getUserId(){
+    private long getUserId() {
         return configService.getConfig().getUserId();
     }
+
     /**
      * 获取根目录
+     *
      * @return java.lang.String
      * @author Gin
      * @date 2021/2/17 15:00
      */
-    private String getRootPath(){
+    private String getRootPath() {
         return configService.getConfig().getRootPath();
     }
 
@@ -184,7 +186,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         }
         List<DownloadQuery> sortedList = downloadQueryService.findSortedList(limit,
                 questsInQuery.stream()
-                        .map(quest -> quest.getFiles().get(0).getUris().get(0).getUri().replace(NGINX_I_PIXIV_CAT,DOMAIN_I_PXIMG_NET))
+                        .map(quest -> quest.getFiles().get(0).getUris().get(0).getUri().replace(NGINX_I_PIXIV_CAT, DOMAIN_I_PXIMG_NET))
                         .collect(Collectors.toList()));
         if (sortedList.size() == 0) {
             return;
@@ -197,10 +199,15 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                     .setReferer("*")
             ;
             Integer mode = configService.getConfig().getDownloadMode();
-            switch (mode){
-                case 2:downloadQuery.setUrl(downloadQuery.getUrl().replace(DOMAIN_I_PXIMG_NET,NGINX_I_PIXIV_CAT));break;
-                case 1:option.setHttpsProxy("http://127.0.0.1:10809/");break;
-                default:break;
+            switch (mode) {
+                case 2:
+                    downloadQuery.setUrl(downloadQuery.getUrl().replace(DOMAIN_I_PXIMG_NET, NGINX_I_PIXIV_CAT));
+                    break;
+                case 1:
+                    option.setHttpsProxy("http://127.0.0.1:10809/");
+                    break;
+                default:
+                    break;
             }
 
             if (addUri(downloadQuery.getUrl(), option).getError() == null) {
@@ -286,6 +293,10 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
             detailExecutor.execute(() -> {
                 List<String> callbacks = Arrays.asList(dq.getCallback().split(DELIMITER_COMMA));
                 PixivIllustDetail detail = pixivIllustDetailService.findOne(pid);
+                if (detail == null) {
+                    log.warn("详情请求失败 pid = {}", pid);
+                    return;
+                }
 //                  回调任务中有添加tag 添加
                 if (callbacks.contains(CALLBACK_TASK_ADD_TAG)) {
                     pixivTagService.addTag(detail, dq.getUserId());
@@ -296,7 +307,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                         Matcher matcher = PIXIV_ILLUST_FULL_NAME.matcher(url);
                         if (matcher.find()) {
                             String uuid = matcher.group();
-                            String path = getRootPath()+"/未分类";
+                            String path = getRootPath() + "/未分类";
                             String fileName = url.substring(url.lastIndexOf("/") + 1);
                             int priority = 5;
                             downloadQueryService.saveOne(uuid,
@@ -318,7 +329,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                             Matcher matcher = PIXIV_ILLUST_FULL_NAME.matcher(url);
                             if (matcher.find()) {
                                 String uuid = matcher.group();
-                                String path = getRootPath()+"/搜索下载/" + dqType.split(":")[1];
+                                String path = getRootPath() + "/搜索下载/" + dqType.split(":")[1];
                                 String fileName = url.substring(url.lastIndexOf("/") + 1);
                                 int priority = 4;
                                 downloadQueryService.saveOne(uuid,
@@ -360,6 +371,9 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
             return;
         }
         PixivSearchResults results = pixivSearchService.search(query.getKeyword(), query.getUid(), query.getPage());
+        if (results == null) {
+            return;
+        }
         List<DetailQuery> list = results.getIllustManga().getDetails().stream()
                 .filter(d -> d.getBookmarked() == null)
                 .map(PixivDetailBase::getId)

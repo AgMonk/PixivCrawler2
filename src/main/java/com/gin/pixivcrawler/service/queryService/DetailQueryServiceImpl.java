@@ -34,6 +34,7 @@ public class DetailQueryServiceImpl extends ServiceImpl<DetailQueryDao, DetailQu
         if (entities.size() == 0) {
             return true;
         }
+        log.info("添加 {}个详情队列", entities.size());
         List<DetailQuery> oldDetailQuery = listByIds(entities.stream().map(DetailQuery::getPid).collect(Collectors.toList()));
         entities.removeAll(oldDetailQuery);
         return saveBatch(entities);

@@ -11,6 +11,8 @@ import com.gin.pixivcrawler.utils.requestUtils.RequestBase;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.gin.pixivcrawler.utils.JsonUtil.printJson;
 
@@ -21,8 +23,9 @@ import static com.gin.pixivcrawler.utils.JsonUtil.printJson;
  * @date 2021/2/1 17:43
  */
 public class PixivPost {
+    private final static Pattern NUMBER = Pattern.compile("^\\d+$");
     private static String proxyHost = null;
-//    private static String proxyHost = "127.0.0.1";
+    //    private static String proxyHost = "127.0.0.1";
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(PixivPost.class);
     public static final String DOMAIN = "https://www.pixiv.net";
     /**
@@ -172,6 +175,10 @@ public class PixivPost {
 
 
     private static <T> T getBody(String result, Class<T> clazz) {
+        Matcher matcher = NUMBER.matcher(result);
+        if (matcher.find()) {
+            throw new RuntimeException(matcher.group());
+        }
         JSONObject json = JSONObject.parseObject(result);
         if (!json.getBoolean("error")) {
             return JSONObject.parseObject(json.getJSONObject("body").toJSONString(), clazz);

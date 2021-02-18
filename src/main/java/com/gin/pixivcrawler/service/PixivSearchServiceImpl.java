@@ -24,7 +24,7 @@ import static com.gin.pixivcrawler.entity.ConstantValue.DELIMITER_COMMA;
 @Service
 @Slf4j
 @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
-public class PixivSearchServiceImpl extends ServiceImpl<SearchKeywordDao,SearchKeyword> implements PixivSearchService {
+public class PixivSearchServiceImpl extends ServiceImpl<SearchKeywordDao, SearchKeyword> implements PixivSearchService {
     private final PixivCookieDao pixivCookieDao;
     private final PixivTagService pixivTagService;
 
@@ -38,15 +38,18 @@ public class PixivSearchServiceImpl extends ServiceImpl<SearchKeywordDao,SearchK
     public PixivSearchResults search(SearchKeyword keyword, long uid, int page) {
         return search(keyword.getKeywords(), uid, page);
     }
+
     @Override
     public PixivSearchResults search(String keyword, long uid, int page) {
         PixivCookie pixivCookie = pixivCookieDao.selectById(uid);
         PixivSearchResults results = PixivPost.search(keyword, page, pixivCookie.getCookie(), false, "all");
-        results.getIllustManga().getDetails().forEach(detail->{
-            String translate = pixivTagService.translate(detail.getTagString(), DELIMITER_COMMA);
-            detail.setTagsList(Arrays.asList(translate.split(DELIMITER_COMMA)));
-        });
-        log.info("获得搜索结果 {} 个 关键字 : {}",results.getIllustManga().getTotal() , keyword);
+        if (results != null) {
+            results.getIllustManga().getDetails().forEach(detail -> {
+                String translate = pixivTagService.translate(detail.getTagString(), DELIMITER_COMMA);
+                detail.setTagsList(Arrays.asList(translate.split(DELIMITER_COMMA)));
+            });
+            log.info("获得搜索结果 {} 个 关键字 : {}", results.getIllustManga().getTotal(), keyword);
+        }
         return results;
     }
 
