@@ -20,7 +20,7 @@ import java.io.Serializable;
 @Accessors(chain = true)
 @TableName("t_config")
 public class Config implements Serializable {
-    @TableId(type= IdType.AUTO)
+    @TableId(type = IdType.AUTO)
     Integer id;
     Long userId;
     Integer queryMaxOfAria2 = 10;
@@ -30,4 +30,15 @@ public class Config implements Serializable {
      * 下载模式 0 = 直接访问 1 = 10809代理 2 = pixiv.cat代理
      */
     Integer downloadMode = 0;
+    /**
+     * 文件名模板
+     * $uid$  用户id
+     * $uname$ 用户名
+     * $uac$ 用户账号
+     * $pid$ pid
+     * $bmc$ 收藏数
+     * $title$
+     * $tags$
+     */
+    String filePathTemplate = "/[uid_$uid$][uac_$uac$][uname_$uname$]/[bmc_$bmc$][$pid$][title_$title$][tags_$tags$]";
 }
