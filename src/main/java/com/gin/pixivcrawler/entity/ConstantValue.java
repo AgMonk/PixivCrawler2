@@ -1,5 +1,8 @@
 package com.gin.pixivcrawler.entity;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * 常量
  *
@@ -37,4 +40,46 @@ public class ConstantValue {
     public static final String TYPE_OF_QUERY_UNTAGGED = "3.未分类";
     public static final String NGINX_I_PIXIV_CAT = "i.pixiv.cat";
     public static final String DOMAIN_I_PXIMG_NET = "i.pximg.net";
+
+    /**
+     * 插画
+     */
+    public final static int ILLUST_TYPE_ILLUSTRATION = 0;
+    /**
+     * 漫画
+     */
+    public final static int ILLUST_TYPE_MANGA = 1;
+    /**
+     * 动图
+     */
+    public final static int ILLUST_TYPE_GIF = 2;
+
+    /**
+     * 文件名的非法字符
+     *
+     * @author bx002
+     * @date 2021/2/18 9:26
+     */
+    public final static Map<String, String> ILLEGAL_CHAR = new HashMap<>();
+
+    static {
+        ILLEGAL_CHAR.put(":", "：");
+        ILLEGAL_CHAR.put("\n", "");
+        ILLEGAL_CHAR.put("?", "？");
+        ILLEGAL_CHAR.put("<", "《");
+        ILLEGAL_CHAR.put(">", "》");
+        ILLEGAL_CHAR.put("*", "×");
+        ILLEGAL_CHAR.put("|", "^");
+        ILLEGAL_CHAR.put("\"", "“");
+        ILLEGAL_CHAR.put("\\", "_");
+        ILLEGAL_CHAR.put("/", "~");
+    }
+
+    /**
+     * 需要删除的用户名后缀
+     *
+     * @author bx002
+     * @date 2021/2/18 9:32
+     */
+    public final static String[] USERNAME_SUFFIX = new String[]{"@", "＠", "|", "FANBOX", "fanbox", "仕事", "■"};
 }
