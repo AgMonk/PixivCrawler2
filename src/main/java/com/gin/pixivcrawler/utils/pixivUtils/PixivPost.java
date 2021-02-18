@@ -14,8 +14,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.gin.pixivcrawler.utils.JsonUtil.printJson;
-
 /**
  * Pixiv请求工具类
  *
@@ -189,8 +187,5 @@ public class PixivPost {
 
 
     public static void main(String[] args) {
-//        long pid = 87460135;
-        printJson(getIllustDetail(87460135, null));
-        printJson(getIllustDetail(87475198, null));
     }
 }

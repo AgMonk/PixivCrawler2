@@ -57,7 +57,6 @@ public class ConstantValue {
     /**
      * 文件名的非法字符
      *
-     * @author bx002
      * @date 2021/2/18 9:26
      */
     public final static Map<String, String> ILLEGAL_CHAR = new HashMap<>();
@@ -72,13 +71,12 @@ public class ConstantValue {
         ILLEGAL_CHAR.put("|", "^");
         ILLEGAL_CHAR.put("\"", "“");
         ILLEGAL_CHAR.put("\\", "_");
-        ILLEGAL_CHAR.put("/", "~");
+        ILLEGAL_CHAR.put("/", "_");
     }
 
     /**
      * 需要删除的用户名后缀
      *
-     * @author bx002
      * @date 2021/2/18 9:32
      */
     public final static String[] USERNAME_SUFFIX = new String[]{"@", "＠", "|", "FANBOX", "fanbox", "仕事", "■"};

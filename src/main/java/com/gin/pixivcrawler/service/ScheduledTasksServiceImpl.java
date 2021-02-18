@@ -293,9 +293,12 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
             detailExecutor.execute(() -> {
                 List<String> callbacks = Arrays.asList(dq.getCallback().split(DELIMITER_COMMA));
                 PixivIllustDetail detail = pixivIllustDetailService.findOne(pid);
+                detailQueryMap.remove(pid);
                 if (detail == null) {
                     log.warn("详情请求失败 pid = {}", pid);
                     return;
+                } else {
+                    detailQueryService.deleteById(pid);
                 }
 //                  回调任务中有添加tag 添加
                 if (callbacks.contains(CALLBACK_TASK_ADD_TAG)) {
@@ -343,9 +346,6 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                     }
                 }
 //                    删除队列中的详情任务
-                if (detailQueryService.deleteById(pid)) {
-                    detailQueryMap.remove(pid);
-                }
             });
         });
 

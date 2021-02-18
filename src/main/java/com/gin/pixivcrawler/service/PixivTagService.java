@@ -52,4 +52,5 @@ public interface PixivTagService extends BaseService<PixivTag> {
      * @date 2021/2/5 15:55
      */
     List<PixivTag> findListBy(int mode, String keyword);
+
 }

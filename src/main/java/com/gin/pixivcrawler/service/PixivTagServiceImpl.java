@@ -129,6 +129,7 @@ public class PixivTagServiceImpl extends ServiceImpl<PixivTagDao, PixivTag> impl
         return list(qw);
     }
 
+
     @Override
     public String translate(String tagString, String delimiter) {
         List<String> tagList = Arrays.asList(tagString.split(DELIMITER_COMMA));

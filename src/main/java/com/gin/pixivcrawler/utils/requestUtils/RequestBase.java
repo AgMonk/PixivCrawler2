@@ -5,7 +5,6 @@ import org.apache.http.*;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -17,7 +16,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.SocketTimeoutException;
 import java.net.URLEncoder;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -64,7 +62,7 @@ public interface RequestBase<T> {
      * @return 秒
      */
     default int getTimeout() {
-        return 15;
+        return 30;
     }
 
     default String getProxyHost() {
@@ -126,7 +124,7 @@ public interface RequestBase<T> {
                 .setConnectionRequestTimeout(getTimeout() * k * 10)
                 .setConnectTimeout(getTimeout() * k)
                 .setSocketTimeout(getTimeout() * k)
-                .setProxy(getProxyHost()!=null? new HttpHost(getProxyHost(), getProxyPort()):null)
+                .setProxy(getProxyHost() != null ? new HttpHost(getProxyHost(), getProxyPort()) : null)
                 .build();
         return HttpClients.custom()
                 .setMaxConnTotal(100)
