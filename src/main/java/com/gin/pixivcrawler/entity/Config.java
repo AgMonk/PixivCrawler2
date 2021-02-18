@@ -9,6 +9,8 @@ import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 
+import static com.gin.pixivcrawler.utils.JsonUtil.prettyJson;
+
 /**
  * 运行配置
  *
@@ -41,4 +43,9 @@ public class Config implements Serializable {
      * $tags$
      */
     String filePathTemplate = "/[uid_$uid$][uac_$uac$][uname_$uname$]/[bmc_$bmc$][$pid$][title_$title$][tags_$tags$]";
+
+    @Override
+    public String toString() {
+        return prettyJson(this);
+    }
 }

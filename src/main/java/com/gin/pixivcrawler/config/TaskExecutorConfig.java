@@ -40,8 +40,8 @@ public class TaskExecutorConfig {
         return TasksUtil.getExecutor("main", 1);
     }
 
-    @Bean(name = "scheduler")
-    public TaskScheduler getTaskScheduler() {
+    @Bean
+    public TaskScheduler scheduler() {
         ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
         taskScheduler.setPoolSize(5);
         taskScheduler.setThreadNamePrefix("scheduler-");
