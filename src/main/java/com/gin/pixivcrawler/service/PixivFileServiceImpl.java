@@ -5,10 +5,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.regex.Matcher;
+import java.util.stream.Collectors;
 
 import static com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail.PIXIV_ILLUST_FULL_NAME;
 import static com.gin.pixivcrawler.utils.requestUtils.RequestBase.timeCost;
@@ -20,6 +19,9 @@ import static com.gin.pixivcrawler.utils.requestUtils.RequestBase.timeCost;
 @Service
 @Slf4j
 public class PixivFileServiceImpl implements PixivFileService {
+    private final ConfigService configService;
+
+
     private final TreeMap<String, File> fileMap = new TreeMap<>((o1, o2) -> {
         Matcher m1 = PIXIV_ILLUST_FULL_NAME.matcher(o1);
         Matcher m2 = PIXIV_ILLUST_FULL_NAME.matcher(o2);
@@ -38,7 +40,6 @@ public class PixivFileServiceImpl implements PixivFileService {
         return 0;
     });
     private final TreeMap<String, File> fileMapTemp = new TreeMap<>((Comparator.reverseOrder()));
-    private final ConfigService configService;
 
     @Override
     public TreeMap<String, String> getFileMap(int limit) {
@@ -58,6 +59,93 @@ public class PixivFileServiceImpl implements PixivFileService {
                 break;
             }
         }
+        return map;
+    }
+
+    @Override
+    public HashMap<String, List<String>> archive(Collection<String> pidCollection) {
+        List<String> pidList = fileMap.keySet().stream().filter(pidCollection::contains).collect(Collectors.toList());
+
+        List<String> successList = new ArrayList<>();
+        List<String> delList = new ArrayList<>();
+        List<String> failList = new ArrayList<>();
+        String archivePath = configService.getConfig().getRootPath() + "/待归档/";
+        if (new File(archivePath).mkdirs()) {
+            log.info("创建目录:{}", archivePath);
+        }
+        for (String pid : pidList) {
+            File file = fileMap.get(pid);
+            String newPath = archivePath + file.getName();
+            File newFile = new File(newPath);
+            if (newFile.exists()) {
+//                文件已存在
+                if (file.length() == newFile.length()) {
+//                    大小相同 删除
+                    if (file.delete()) {
+                        fileMap.remove(pid);
+                        delList.add(pid);
+                    } else {
+                        log.warn("删除失败 {}", file);
+                        failList.add(pid);
+                    }
+                } else {
+//                    大小不同 改名
+                    int i = 0;
+                    int subIndex = newPath.lastIndexOf(".");
+                    String p = newPath.substring(0, subIndex);
+                    String s = newPath.substring(subIndex);
+                    do {
+                        i++;
+                        newPath = p + "." + i + s;
+                        newFile = new File(newPath);
+                    } while (!newFile.exists());
+
+                    if (file.renameTo(newFile)) {
+                        fileMap.remove(pid);
+                        successList.add(pid);
+                    } else {
+                        log.warn("重命名失败 {}", file);
+                        failList.add(pid);
+                    }
+                }
+            } else {
+                if (file.renameTo(newFile)) {
+                    fileMap.remove(pid);
+                    successList.add(pid);
+                } else {
+                    log.warn("重命名失败 {}", file);
+                    failList.add(pid);
+                }
+            }
+        }
+        String msg = String.format("成功移动文件 %s 个 删除重复文件 %s 个 操作失败 %s 个", successList.size(), delList.size(), failList.size());
+        log.info(msg);
+        HashMap<String, List<String>> map = new HashMap<>();
+        map.put("success", successList);
+        map.put("del", delList);
+        map.put("fail", failList);
+        return map;
+    }
+
+    @Override
+    public HashMap<String, List<String>> del(Collection<String> pidCollection) {
+        List<String> delList = new ArrayList<>();
+        List<String> failList = new ArrayList<>();
+        HashMap<String, List<String>> map = new HashMap<>();
+        map.put("del", delList);
+        map.put("fail", failList);
+        List<String> pidList = fileMap.keySet().stream().filter(pidCollection::contains).collect(Collectors.toList());
+        for (String pid : pidList) {
+            File file = fileMap.get(pid);
+            if (file.delete()) {
+                delList.add(pid);
+                fileMap.remove(pid);
+            } else {
+                failList.add(pid);
+            }
+        }
+        String msg = String.format("删除文件 %s 个 操作失败 %s 个", delList.size(), failList.size());
+        log.info(msg);
         return map;
     }
 

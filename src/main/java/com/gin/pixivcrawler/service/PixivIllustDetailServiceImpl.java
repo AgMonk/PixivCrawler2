@@ -68,7 +68,7 @@ public class PixivIllustDetailServiceImpl extends ServiceImpl<PixivIllustDetailD
     public PixivIllustDetail findOne(Serializable id) {
         log.debug("请求详情 pid = {} ", id);
         long start = System.currentTimeMillis();
-        long pid = (long) id;
+        long pid = id instanceof String ? Long.parseLong((String) id) : (long) id;
         PixivIllustDetail detail = detailCache.get(pid);
         if (isAvailable(detail)) {
             return detail;

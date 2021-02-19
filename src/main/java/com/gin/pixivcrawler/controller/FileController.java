@@ -48,4 +48,16 @@ public class FileController {
         }
         return Res.success(map);
     }
+
+    @RequestMapping("archive")
+    public Res<HashMap<String, List<String>>> archive(String pidString) {
+        String[] pidArray = pidString.split(DELIMITER_COMMA);
+        return Res.success(pixivFileService.archive(Arrays.asList(pidArray)));
+    }
+
+    @RequestMapping("del")
+    public Res<HashMap<String, List<String>>> del(String pidString) {
+        String[] pidArray = pidString.split(DELIMITER_COMMA);
+        return Res.success(pixivFileService.del(Arrays.asList(pidArray)));
+    }
 }
