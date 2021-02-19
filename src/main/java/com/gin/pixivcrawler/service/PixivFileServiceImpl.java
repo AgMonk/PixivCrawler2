@@ -116,7 +116,6 @@ public class PixivFileServiceImpl implements PixivFileService {
      *
      * @param rootDir 根目录
      * @param map     保存文件的map
-     * @return void
      * @author bx002
      * @date 2021/2/19 11:55
      */

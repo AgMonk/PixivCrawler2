@@ -134,7 +134,7 @@ public class PixivIllustDetailServiceImpl extends ServiceImpl<PixivIllustDetailD
         List<PixivIllustDetail> results = new ArrayList<>();
         tasks.forEach(t -> {
             try {
-                PixivIllustDetail detail = t.get(60, TimeUnit.SECONDS);
+                PixivIllustDetail detail = t.get(120, TimeUnit.SECONDS);
                 if (detail != null) {
                     results.add(detail);
                 }

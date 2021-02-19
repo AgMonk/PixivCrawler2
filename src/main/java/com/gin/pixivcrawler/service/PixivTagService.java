@@ -53,4 +53,13 @@ public interface PixivTagService extends BaseService<PixivTag> {
      */
     List<PixivTag> findListBy(int mode, String keyword);
 
+    /**
+     * 统计标签数量
+     *
+     * @author bx002
+     * @date 2021/2/19 14:11
+     */
+    
+    void countTags();
+
 }

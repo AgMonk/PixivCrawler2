@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.gin.pixivcrawler.utils.StringUtils;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.nlpcn.commons.lang.jianfan.JianFan;
 
 import java.io.Serializable;
@@ -23,6 +24,7 @@ import java.util.List;
  */
 @Data
 @TableName("t_pixiv_tags")
+@NoArgsConstructor
 public class PixivTag implements Serializable {
     @JsonIgnore
     @JSONField(serialize = false)
@@ -52,6 +54,12 @@ public class PixivTag implements Serializable {
     String transRaw;
     @TableField(exist = false)
     List<String> recommendTranslations;
+    int count;
+
+    public PixivTag(String tag, int count) {
+        this.tag = tag;
+        this.count = count;
+    }
 
     public void addRecTrans(String s) {
         if (StringUtils.isEmpty(s)) {

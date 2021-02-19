@@ -153,24 +153,25 @@ public interface RequestBase<T> {
         long start = System.currentTimeMillis();
         Object result = null;
         for (int i = 1; i <= getMaxTimes(); i++) {
-            result = execute(i);
-            if (result != null) {
-                if (!(result instanceof Integer)) {
-                    LOG.debug("请求成功 总尝试次数 {} 地址：{} 总耗时: {}", i, getMethod().getURI(), timeCost(start));
-                    return result;
-//                } else {
-//                    int statusCode = (int) result;
-//                    //500开头的错误则等待5秒继续请求
-//                    if (statusCode / 100 == 5) {
-//                        try {
-//                            Thread.sleep(5000);
-//                        } catch (InterruptedException ignored) {
-//                        }
-//                    } else {
-//                        break;
-//                    }
+            try {
+                result = execute(i);
+                if (result != null) {
+                    if (!(result instanceof Integer)) {
+                        LOG.debug("请求成功 总尝试次数 {} 地址：{} 总耗时: {}", i, getMethod().getURI(), timeCost(start));
+                        return result;
+                    }
+                    break;
                 }
-                break;
+            } catch (RuntimeException e) {
+                LOG.warn("出现502错误 暂停");
+                if (e.getMessage().contains("502")) {
+                    try {
+                        Thread.sleep(30 * 1000);
+                    } catch (InterruptedException interruptedException) {
+                        interruptedException.printStackTrace();
+                    }
+                    continue;
+                }
             }
         }
 //        LOG.error("请求行 {}", getMethod().getRequestLine());
@@ -212,7 +213,7 @@ public interface RequestBase<T> {
         } else {
             LOG.warn("第 {} 次请求失败 code: {} 地址:{} ", i, statusCode, getMethod().getURI());
         }
-        return statusCode;
+        throw new RuntimeException(String.valueOf(statusCode));
     }
 
     /**

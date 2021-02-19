@@ -11,15 +11,13 @@ import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTag;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
 import lombok.extern.slf4j.Slf4j;
 import org.nlpcn.commons.lang.jianfan.JianFan;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -127,6 +125,23 @@ public class PixivTagServiceImpl extends ServiceImpl<PixivTagDao, PixivTag> impl
         }
 
         return list(qw);
+    }
+
+    @Override
+    @Scheduled(cron = "0 0 * * * ?")
+    public void countTags() {
+        PixivIllustDetailServiceImpl detailService = SpringContextUtil.getBean(PixivIllustDetailServiceImpl.class);
+        QueryWrapper<PixivIllustDetail> qw = new QueryWrapper<>();
+        qw.select("tag_string");
+        List<PixivIllustDetail> list = detailService.list(qw);
+        log.info("查询到 {} 个详情", list.size());
+        Map<String, Long> groupMap = list.stream()
+                .map(PixivIllustDetail::getTagString)
+                .flatMap(s -> Arrays.stream(s.split(DELIMITER_COMMA)))
+                .collect(Collectors.groupingBy(s -> s, Collectors.counting()));
+        log.info("总计有tag {} 个", groupMap.size());
+        groupMap.forEach((k, v) -> updateById(new PixivTag(k, Math.toIntExact(v))));
+        log.info("统计完毕");
     }
 
 
