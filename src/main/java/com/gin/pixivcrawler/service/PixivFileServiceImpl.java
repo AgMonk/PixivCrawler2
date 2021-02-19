@@ -64,18 +64,100 @@ public class PixivFileServiceImpl implements PixivFileService {
 
     @Override
     public HashMap<String, List<String>> archive(Collection<String> pidCollection) {
-        List<String> pidList = fileMap.keySet().stream().filter(pidCollection::contains).collect(Collectors.toList());
+        String archivePath = configService.getConfig().getRootPath() + "/待归档/";
+        return moveFiles(fileMap, pidCollection, archivePath);
+    }
 
+    @Override
+    public HashMap<String, List<String>> del(Collection<String> pidCollection) {
+        List<String> delList = new ArrayList<>();
+        List<String> failList = new ArrayList<>();
+        HashMap<String, List<String>> map = new HashMap<>();
+        map.put("del", delList);
+        map.put("fail", failList);
+        List<String> pidList = fileMap.keySet().stream().filter(pidCollection::contains).collect(Collectors.toList());
+        for (String pid : pidList) {
+            File file = fileMap.get(pid);
+            if (file.delete()) {
+                delList.add(pid);
+                fileMap.remove(pid);
+            } else {
+                failList.add(pid);
+            }
+        }
+        String msg = String.format("删除文件 %s 个 操作失败 %s 个", delList.size(), failList.size());
+        log.info(msg);
+        return map;
+    }
+
+    public PixivFileServiceImpl(ConfigService configService) {
+        this.configService = configService;
+    }
+
+
+    @Scheduled(cron = "0 * * * * ?")
+    public void listFileMap() {
+        if (fileMapTemp.size() > 0) {
+            return;
+        }
+        log.debug("检索根目录文件...");
+        long start = System.currentTimeMillis();
+        String rootPath = configService.getConfig().getRootPath();
+        listFiles(new File(rootPath + "/未分类"), fileMapTemp);
+        listFiles(new File(rootPath + "/搜索下载"), fileMapTemp);
+        fileMap.clear();
+        fileMap.putAll(fileMapTemp);
+        fileMapTemp.clear();
+        log.info("根目录下共有文件 {} 个 耗时:{}", fileMap.size(), timeCost(start));
+    }
+
+    /**
+     * 列出目录下的所有文件
+     *
+     * @param rootDir 根目录
+     * @param map     保存文件的map
+     * @return void
+     * @author bx002
+     * @date 2021/2/19 11:55
+     */
+    private static void listFiles(File rootDir, Map<String, File> map) {
+        File[] files = rootDir.listFiles();
+        if (files == null || files.length == 0) {
+            return;
+        }
+        for (File file : files) {
+            if (file.isDirectory()) {
+                listFiles(file, map);
+            } else {
+                Matcher matcher = PIXIV_ILLUST_FULL_NAME.matcher(file.getName());
+                if (matcher.find()) {
+                    map.put(matcher.group(), file);
+                }
+            }
+        }
+    }
+
+    /**
+     * 移动文件
+     *
+     * @param fileMap    文件map
+     * @param keys       需要移动的文件key
+     * @param targetPath 目标路径
+     * @return java.util.HashMap<java.lang.String, java.util.List < java.lang.String>>
+     * @author bx002
+     * @date 2021/2/19 11:54
+     */
+    public static HashMap<String, List<String>> moveFiles(Map<String, File> fileMap, Collection<String> keys, String targetPath) {
+        List<String> pidList = fileMap.keySet().stream().filter(keys::contains).collect(Collectors.toList());
         List<String> successList = new ArrayList<>();
         List<String> delList = new ArrayList<>();
         List<String> failList = new ArrayList<>();
-        String archivePath = configService.getConfig().getRootPath() + "/待归档/";
-        if (new File(archivePath).mkdirs()) {
-            log.info("创建目录:{}", archivePath);
+        if (new File(targetPath).mkdirs()) {
+            log.info("创建目录:{}", targetPath);
         }
         for (String pid : pidList) {
             File file = fileMap.get(pid);
-            String newPath = archivePath + file.getName();
+            String newPath = targetPath + file.getName();
             File newFile = new File(newPath);
             if (newFile.exists()) {
 //                文件已存在
@@ -118,71 +200,12 @@ public class PixivFileServiceImpl implements PixivFileService {
                 }
             }
         }
-        String msg = String.format("成功移动文件 %s 个 删除重复文件 %s 个 操作失败 %s 个", successList.size(), delList.size(), failList.size());
+        String msg = String.format("成功移动文件 %d 个 删除重复文件 %d 个 操作失败 %d 个", successList.size(), delList.size(), failList.size());
         log.info(msg);
         HashMap<String, List<String>> map = new HashMap<>();
         map.put("success", successList);
         map.put("del", delList);
         map.put("fail", failList);
         return map;
-    }
-
-    @Override
-    public HashMap<String, List<String>> del(Collection<String> pidCollection) {
-        List<String> delList = new ArrayList<>();
-        List<String> failList = new ArrayList<>();
-        HashMap<String, List<String>> map = new HashMap<>();
-        map.put("del", delList);
-        map.put("fail", failList);
-        List<String> pidList = fileMap.keySet().stream().filter(pidCollection::contains).collect(Collectors.toList());
-        for (String pid : pidList) {
-            File file = fileMap.get(pid);
-            if (file.delete()) {
-                delList.add(pid);
-                fileMap.remove(pid);
-            } else {
-                failList.add(pid);
-            }
-        }
-        String msg = String.format("删除文件 %s 个 操作失败 %s 个", delList.size(), failList.size());
-        log.info(msg);
-        return map;
-    }
-
-    public PixivFileServiceImpl(ConfigService configService) {
-        this.configService = configService;
-    }
-
-
-    @Scheduled(cron = "0 * * * * ?")
-    public void listFileMap() {
-        if (fileMapTemp.size() > 0) {
-            return;
-        }
-        log.debug("检索根目录文件...");
-        long start = System.currentTimeMillis();
-        listFiles(new File(configService.getConfig().getRootPath()), fileMapTemp);
-        fileMap.clear();
-        fileMap.putAll(fileMapTemp);
-        fileMapTemp.clear();
-        log.info("根目录下共有文件 {} 个 耗时:{}", fileMap.size(), timeCost(start));
-    }
-
-
-    private static void listFiles(File rootDir, TreeMap<String, File> map) {
-        File[] files = rootDir.listFiles();
-        if (files == null || files.length == 0) {
-            return;
-        }
-        for (File file : files) {
-            if (file.isDirectory()) {
-                listFiles(file, map);
-            } else {
-                Matcher matcher = PIXIV_ILLUST_FULL_NAME.matcher(file.getName());
-                if (matcher.find()) {
-                    map.put(matcher.group(), file);
-                }
-            }
-        }
     }
 }
