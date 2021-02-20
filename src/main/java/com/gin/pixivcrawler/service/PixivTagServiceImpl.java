@@ -10,7 +10,6 @@ import com.gin.pixivcrawler.utils.StringUtils;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTag;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
 import lombok.extern.slf4j.Slf4j;
-import org.nlpcn.commons.lang.jianfan.JianFan;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -31,6 +30,7 @@ import static com.gin.pixivcrawler.entity.ConstantValue.DELIMITER_COMMA;
 @Slf4j
 @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
 public class PixivTagServiceImpl extends ServiceImpl<PixivTagDao, PixivTag> implements PixivTagService {
+    Pattern BMK_PATTERN = Pattern.compile("users入り$");
     public static final Pattern PATTERN_ONLY_WORD = Pattern.compile("^[\\w\\s-']+$");
     private final int LIST_MODE_HAS_CUSTOM_TRANSLATION = 1;
     private final int LIST_MODE_HAS_NOT_CUSTOM_TRANSLATION = 2;
@@ -155,14 +155,11 @@ public class PixivTagServiceImpl extends ServiceImpl<PixivTagDao, PixivTag> impl
                 .map(tag -> tagsMap.getOrDefault(tag, tag))
                 .flatMap(tag -> Arrays.stream(tag.replace(")", "").split("\\(")))
                 .flatMap(tag -> Arrays.stream(tag.replace("）", "").split("（")))
+//                过滤掉收藏标签
+                .filter(tag -> !BMK_PATTERN.matcher(tag).find())
                 .map(String::trim)
                 .map(tag -> tag.replace(" ", "_"))
                 .distinct()
                 .collect(Collectors.joining(delimiter));
-    }
-
-    public static void main(String[] args) {
-        String s = "AR小隊";
-        System.out.println(JianFan.f2j(s));
     }
 }

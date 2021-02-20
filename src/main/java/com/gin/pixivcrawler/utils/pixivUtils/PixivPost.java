@@ -184,8 +184,4 @@ public class PixivPost {
         JsonUtil.printJson(json);
         throw new RuntimeException(json.getString("message"));
     }
-
-
-    public static void main(String[] args) {
-    }
 }
