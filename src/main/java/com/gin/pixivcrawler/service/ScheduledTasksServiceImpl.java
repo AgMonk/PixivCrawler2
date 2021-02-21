@@ -19,6 +19,7 @@ import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivCookie;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivSearchResults;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivDetailBase;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
+import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetailInBookmarks;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -140,7 +141,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         Integer total = bookmarks.getTotal();
         log.info("用户 userID = {} 收藏中 tag:{} 下总计有作品 {} 个", getUserId(), tag, total);
         untaggedTotalCount = total;
-        List<Long> pidList = bookmarks.getDetails().stream().map(PixivDetailBase::getId).collect(Collectors.toList());
+        List<PixivIllustDetailInBookmarks> bmkIllust = bookmarks.getDetails();
 //      总数量大于请求总上限 请求更多
         if (total >= singleLimit) {
             List<Future<PixivBookmarks>> tasksFuture = new ArrayList<>();
@@ -149,18 +150,20 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
             }
             for (Future<PixivBookmarks> future : tasksFuture) {
                 PixivBookmarks bookmark = future.get(60, TimeUnit.SECONDS);
-                pidList.addAll(bookmark.getDetails().stream().map(PixivDetailBase::getId).collect(Collectors.toList()));
+                bmkIllust.addAll(bookmark.getDetails());
             }
         }
 //        在添加tag队列里的pid不进行请求
-        pidList.removeAll(addTagQueryMap.keySet());
+        bmkIllust.removeIf(d->addTagQueryMap.containsKey(d.getId()));
 //        添加到详情队列
-        List<DetailQuery> detailQueries = pidList.stream()
-                .map(pid -> new DetailQuery(pid,
-                        getUserId(),
-                        "3.未分类",
-                        5,
-                        CALLBACK_TASK_ADD_TAG + "," + CALLBACK_TASK_DOWNLOAD))
+        List<DetailQuery> detailQueries = bmkIllust.stream()
+                .map(d -> new DetailQuery(d.getId()
+                        ,getUserId()
+                        ,"3.未分类"
+                        ,5
+                        ,CALLBACK_TASK_ADD_TAG + "," + CALLBACK_TASK_DOWNLOAD
+                        ,d.getBookmarkId()
+                ))
                 .collect(Collectors.toList());
         detailQueryService.saveList(detailQueries);
     }
@@ -376,12 +379,12 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         }
         List<DetailQuery> list = results.getIllustManga().getDetails().stream()
                 .filter(d -> d.getBookmarked() == null)
-                .map(PixivDetailBase::getId)
-                .map(pid -> new DetailQuery(
-                        pid, getUserId()
+                .map(d -> new DetailQuery(
+                        d.getId(), getUserId()
                         , TYPE_OF_QUERY_SEARCH + query.getName()
                         , 4
                         , CALLBACK_TASK_SEARCH_DOWNLOAD
+                        ,d.getBookmarkId()
                 )).collect(Collectors.toList());
         detailQueryService.saveList(list);
         searchQueryService.delById(query.getUuid());

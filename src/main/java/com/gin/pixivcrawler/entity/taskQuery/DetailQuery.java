@@ -31,6 +31,7 @@ public class DetailQuery implements Serializable {
      * 请求完成后的操作
      */
     String callback;
+    Long bookmarkId;
 
     @Override
     public boolean equals(Object o) {

@@ -32,6 +32,7 @@ public class PixivDetailBase implements Serializable {
     @JSONField(serialize = false)
     HashMap<String, String> bookmarkData;
     Integer bookmarked;
+    Long bookmarkId;
     /**
      * 作品id
      */
@@ -94,6 +95,7 @@ public class PixivDetailBase implements Serializable {
         this.bookmarkData = bookmarkData;
         if (bookmarkData != null) {
             this.bookmarked = 1;
+            this.bookmarkId = Long.parseLong(bookmarkData.get("id"));
         }
     }
 
