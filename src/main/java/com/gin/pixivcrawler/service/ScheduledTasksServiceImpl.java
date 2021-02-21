@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 import static com.gin.pixivcrawler.entity.ConstantValue.*;
 import static com.gin.pixivcrawler.service.PixivIllustDetailServiceImpl.MIN_BOOKMARK_COUNT;
 import static com.gin.pixivcrawler.utils.ariaUtils.Aria2Request.*;
+import static com.gin.pixivcrawler.utils.pixivUtils.PixivPost.deleteIllustBookmark;
 import static com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail.PIXIV_ILLUST_FULL_NAME;
 
 /**
@@ -295,60 +296,72 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
             detailQueryMap.put(pid, dq);
             detailExecutor.execute(() -> {
                 List<String> callbacks = Arrays.asList(dq.getCallback().split(DELIMITER_COMMA));
-                PixivIllustDetail detail = pixivIllustDetailService.findOne(pid);
-                detailQueryMap.remove(pid);
-                if (detail == null) {
-                    log.warn("详情请求失败 pid = {}", pid);
-                    return;
-                } else {
-                    detailQueryService.deleteById(pid);
-                }
-//                  回调任务中有添加tag 添加
-                if (callbacks.contains(CALLBACK_TASK_ADD_TAG)) {
-                    pixivTagService.addTag(detail, dq.getUserId());
-                }
-//                    回调任务中有下载 下载
-                if (callbacks.contains(CALLBACK_TASK_DOWNLOAD)) {
-                    for (String url : detail.getUrlList()) {
-                        Matcher matcher = PIXIV_ILLUST_FULL_NAME.matcher(url);
-                        if (matcher.find()) {
-                            String uuid = matcher.group();
-                            String path = getRootPath() + "/未分类";
-                            String fileName = url.substring(url.lastIndexOf("/") + 1);
-                            int priority = 5;
-                            downloadQueryService.saveOne(uuid,
-                                    path,
-                                    fileName,
-                                    url,
-                                    TYPE_OF_QUERY_UNTAGGED,
-                                    priority);
-                        }
+                try {
+                    PixivIllustDetail detail = pixivIllustDetailService.findOne(pid);
+                    detailQueryMap.remove(pid);
+                    if (detail == null) {
+                        log.warn("详情请求失败 pid = {}", pid);
+                        return;
+                    } else {
+                        detailQueryService.deleteById(pid);
                     }
-                }
-//                回调任务中有 搜索下载
-                if (callbacks.contains(CALLBACK_TASK_SEARCH_DOWNLOAD)) {
-//                    详情未收藏，且收藏数大于规定值
-                    if (detail.getBookmarked() == null && detail.getBookmarkCount() > MIN_BOOKMARK_COUNT) {
-//                        设置为已收藏
-                        pixivIllustDetailService.setIllustBookmarked(detail.getId());
+//                  回调任务中有添加tag 添加
+                    if (callbacks.contains(CALLBACK_TASK_ADD_TAG)) {
+                        pixivTagService.addTag(detail, dq.getUserId());
+                    }
+//                    回调任务中有下载 下载
+                    if (callbacks.contains(CALLBACK_TASK_DOWNLOAD)) {
                         for (String url : detail.getUrlList()) {
                             Matcher matcher = PIXIV_ILLUST_FULL_NAME.matcher(url);
                             if (matcher.find()) {
                                 String uuid = matcher.group();
-                                String path = getRootPath() + "/搜索下载/" + dqType.split(":")[1];
+                                String path = getRootPath() + "/未分类";
                                 String fileName = url.substring(url.lastIndexOf("/") + 1);
-                                int priority = 4;
+                                int priority = 5;
                                 downloadQueryService.saveOne(uuid,
                                         path,
                                         fileName,
                                         url,
-                                        TYPE_OF_QUERY_SEARCH,
+                                        TYPE_OF_QUERY_UNTAGGED,
                                         priority);
                             }
                         }
                     }
-                }
+//                回调任务中有 搜索下载
+                    if (callbacks.contains(CALLBACK_TASK_SEARCH_DOWNLOAD)) {
+    //                    详情未收藏，且收藏数大于规定值
+                        if (detail.getBookmarked() == null && detail.getBookmarkCount() > MIN_BOOKMARK_COUNT) {
+    //                        设置为已收藏
+                            pixivIllustDetailService.setIllustBookmarked(detail.getId());
+                            for (String url : detail.getUrlList()) {
+                                Matcher matcher = PIXIV_ILLUST_FULL_NAME.matcher(url);
+                                if (matcher.find()) {
+                                    String uuid = matcher.group();
+                                    String path = getRootPath() + "/搜索下载/" + dqType.split(":")[1];
+                                    String fileName = url.substring(url.lastIndexOf("/") + 1);
+                                    int priority = 4;
+                                    downloadQueryService.saveOne(uuid,
+                                            path,
+                                            fileName,
+                                            url,
+                                            TYPE_OF_QUERY_SEARCH,
+                                            priority);
+                                }
+                            }
+                        }
+                    }
 //                    删除队列中的详情任务
+                } catch (RuntimeException e) {
+                    if (e.getMessage().contains("删除")) {
+//                        作品被删除
+                        Long bookmarkId = dq.getBookmarkId();
+                        if (bookmarkId!=null) {
+                            PixivCookie pixivCookie = pixivCookieDao.selectById(dq.getUserId());
+                            deleteIllustBookmark(pixivCookie.getCookie(),pixivCookie.getTt(),bookmarkId );
+                            detailQueryService.deleteById(pid);
+                        }
+                    }
+                }
             });
         });
 

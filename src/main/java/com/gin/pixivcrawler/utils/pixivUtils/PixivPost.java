@@ -1,7 +1,6 @@
 package com.gin.pixivcrawler.utils.pixivUtils;
 
 import com.alibaba.fastjson.JSONObject;
-import com.gin.pixivcrawler.utils.JsonUtil;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivBookmarks;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivSearchResults;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
@@ -13,6 +12,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.gin.pixivcrawler.utils.JsonUtil.printJson;
 
 /**
  * Pixiv请求工具类
@@ -41,6 +42,8 @@ public class PixivPost {
 
     private final static String URL_SEARCH_ARTWORKS = DOMAIN + "/ajax/search/artworks/";
 
+    private final static String URL_BOOKMARK_SETTING = DOMAIN + "/bookmark_setting.php";
+
     public static final String TIME_COST = " 完成 耗时:{}";
 
 
@@ -65,6 +68,7 @@ public class PixivPost {
             body = getBody(result, PixivIllustDetail.class);
         } catch (RuntimeException e) {
             LOG.warn("pid = {} {}", pid, e.getMessage());
+            throw e;
         }
         LOG.debug(msg + TIME_COST, pid, RequestBase.timeCost(start));
         return body;
@@ -171,6 +175,30 @@ public class PixivPost {
         return body;
     }
 
+    /**
+     * 删除收藏
+     *
+     * @param cookie     cookie
+     * @param bookmarkId 收藏id
+     * @return boolean
+     * @author Gin
+     * @date 2021/2/21 22:25
+     */
+    public static boolean deleteIllustBookmark(String cookie, String tt, long bookmarkId) {
+        LOG.info("删除收藏 bmkID = {}", bookmarkId);
+        boolean b = false;
+        Object result = PostRequest.create()
+                .addCookie(cookie)
+                .addEntityString("book_id[]", String.valueOf(bookmarkId))
+                .addEntityString("del", "取消收藏")
+                .addEntityString("tt", tt)
+                .post(URL_BOOKMARK_SETTING);
+        if (result != null) {
+            b = true;
+            LOG.info("删除收藏 bmkID = {} {}", bookmarkId, "成功");
+        }
+        return b;
+    }
 
     private static <T> T getBody(String result, Class<T> clazz) {
         Matcher matcher = NUMBER.matcher(result);
@@ -181,7 +209,7 @@ public class PixivPost {
         if (!json.getBoolean("error")) {
             return JSONObject.parseObject(json.getJSONObject("body").toJSONString(), clazz);
         }
-        JsonUtil.printJson(json);
+        printJson(json);
         throw new RuntimeException(json.getString("message"));
     }
 }

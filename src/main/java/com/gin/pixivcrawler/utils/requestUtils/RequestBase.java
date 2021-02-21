@@ -163,8 +163,8 @@ public interface RequestBase<T> {
                     break;
                 }
             } catch (RuntimeException e) {
-                LOG.warn("出现502错误 暂停");
                 if (e.getMessage().contains("502")) {
+                    LOG.warn("出现502错误 暂停");
                     try {
                         Thread.sleep(30 * 1000);
                     } catch (InterruptedException interruptedException) {
