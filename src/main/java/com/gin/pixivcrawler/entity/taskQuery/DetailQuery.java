@@ -33,6 +33,8 @@ public class DetailQuery implements Serializable {
     String callback;
     Long bookmarkId;
 
+
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

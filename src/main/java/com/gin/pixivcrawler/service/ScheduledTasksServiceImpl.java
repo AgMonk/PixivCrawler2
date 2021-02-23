@@ -1,6 +1,7 @@
 package com.gin.pixivcrawler.service;
 
 import com.gin.pixivcrawler.dao.PixivCookieDao;
+import com.gin.pixivcrawler.entity.Config;
 import com.gin.pixivcrawler.entity.SearchKeyword;
 import com.gin.pixivcrawler.entity.StatusReport;
 import com.gin.pixivcrawler.entity.taskQuery.AddTagQuery;
@@ -155,15 +156,15 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
             }
         }
 //        在添加tag队列里的pid不进行请求
-        bmkIllust.removeIf(d->addTagQueryMap.containsKey(d.getId()));
+        bmkIllust.removeIf(d -> addTagQueryMap.containsKey(d.getId()));
 //        添加到详情队列
         List<DetailQuery> detailQueries = bmkIllust.stream()
                 .map(d -> new DetailQuery(d.getId()
-                        ,getUserId()
-                        ,"3.未分类"
-                        ,5
-                        ,CALLBACK_TASK_ADD_TAG + "," + CALLBACK_TASK_DOWNLOAD
-                        ,d.getBookmarkId()
+                        , getUserId()
+                        , "3.未分类"
+                        , 5
+                        , CALLBACK_TASK_ADD_TAG + "," + CALLBACK_TASK_DOWNLOAD
+                        , d.getBookmarkId()
                 ))
                 .collect(Collectors.toList());
         detailQueryService.saveList(detailQueries);
@@ -237,6 +238,12 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                 .filter(Aria2Quest::isCompleted)
                 .map(quest -> quest.getFiles().get(0).getUris().get(0).getUri())
                 .collect(Collectors.toList());
+
+        List<String> error3List = stoppedQuest.stream()
+                .filter(q -> q.getErrorCode() == 3)
+                .map(quest -> quest.getFiles().get(0).getUris().get(0).getUri())
+                .collect(Collectors.toList());
+
 //        停止gid
         List<String> gidList = stoppedQuest.stream().map(Aria2Quest::getGid).collect(Collectors.toList());
 //        移除完成任务
@@ -247,6 +254,24 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
             }
             if (completedUrlList.size() > 0 && downloadQueryService.deleteByUrl(completedUrlList)) {
                 log.info("从数据库移除 {} 个已完成任务", completedUrlList.size());
+            }
+            if (error3List.size()>0){
+                downloadQueryService.deleteByUrl(error3List);
+                for (String url : error3List) {
+                    Matcher matcher = PIXIV_ILLUST_FULL_NAME.matcher(url);
+                    if (matcher.find()) {
+                        long pid =Long.parseLong( matcher.group().split("_p")[0]);
+                        pixivIllustDetailService.remove(pid);
+                        Config config = configService.getConfig();
+                        detailQueryService.saveOne(new DetailQuery(pid,
+                                config.getUserId(),
+                                "6.重新详情",
+                                6,
+                                CALLBACK_TASK_DOWNLOAD,
+                                null));
+                    }
+                }
+                log.info("重新请求作品详情 {}个",error3List.size());
             }
         }
     }
@@ -329,9 +354,9 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                     }
 //                回调任务中有 搜索下载
                     if (callbacks.contains(CALLBACK_TASK_SEARCH_DOWNLOAD)) {
-    //                    详情未收藏，且收藏数大于规定值
+                        //                    详情未收藏，且收藏数大于规定值
                         if (detail.getBookmarked() == null && detail.getBookmarkCount() > MIN_BOOKMARK_COUNT) {
-    //                        设置为已收藏
+                            //                        设置为已收藏
                             pixivIllustDetailService.setIllustBookmarked(detail.getId());
                             for (String url : detail.getUrlList()) {
                                 Matcher matcher = PIXIV_ILLUST_FULL_NAME.matcher(url);
@@ -355,9 +380,9 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                     if (e.getMessage().contains("删除")) {
 //                        作品被删除
                         Long bookmarkId = dq.getBookmarkId();
-                        if (bookmarkId!=null) {
+                        if (bookmarkId != null) {
                             PixivCookie pixivCookie = pixivCookieDao.selectById(dq.getUserId());
-                            deleteIllustBookmark(pixivCookie.getCookie(),pixivCookie.getTt(),bookmarkId );
+                            deleteIllustBookmark(pixivCookie.getCookie(), pixivCookie.getTt(), bookmarkId);
                             detailQueryService.deleteById(pid);
                         }
                     }
@@ -397,7 +422,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                         , TYPE_OF_QUERY_SEARCH + query.getName()
                         , 4
                         , CALLBACK_TASK_SEARCH_DOWNLOAD
-                        ,d.getBookmarkId()
+                        , d.getBookmarkId()
                 )).collect(Collectors.toList());
         detailQueryService.saveList(list);
         searchQueryService.delById(query.getUuid());
