@@ -424,6 +424,8 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                         , CALLBACK_TASK_SEARCH_DOWNLOAD
                         , d.getBookmarkId()
                 )).collect(Collectors.toList());
+        List<DetailQuery> existsList = detailQueryService.findList(list.stream().map(DetailQuery::getPid).collect(Collectors.toList()));
+        list.removeAll(existsList);
         detailQueryService.saveList(list);
         searchQueryService.delById(query.getUuid());
     }
