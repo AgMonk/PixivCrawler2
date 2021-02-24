@@ -5,10 +5,11 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.gin.pixivcrawler.entity.ConstantValue;
-import com.gin.pixivcrawler.utils.TimeUtil;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTag;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTagsInDetail;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivUrls;
+import com.gin.pixivcrawler.utils.timeUtils.TimeUnit;
+import com.gin.pixivcrawler.utils.timeUtils.TimeUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -144,7 +145,7 @@ public class PixivIllustDetail extends PixivDetailBase implements Serializable {
     }
 
     public String getUploadDateTime() {
-        return TimeUtil.second2String(uploadSeconds);
+        return TimeUtils.formatTime(uploadSeconds, TimeUnit.SECONDS);
     }
 
 
@@ -154,7 +155,7 @@ public class PixivIllustDetail extends PixivDetailBase implements Serializable {
     }
 
     public String getCheckDateTime() {
-        return checkSeconds != null ? TimeUtil.second2String(checkSeconds) : null;
+        return checkSeconds != null ? TimeUtils.formatTime(checkSeconds, TimeUnit.SECONDS) : null;
     }
 
 }

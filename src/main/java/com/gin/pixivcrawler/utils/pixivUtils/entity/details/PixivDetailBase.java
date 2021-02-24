@@ -4,16 +4,17 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.gin.pixivcrawler.utils.TimeUtil;
+import com.gin.pixivcrawler.utils.timeUtils.TimeUnit;
+import com.gin.pixivcrawler.utils.timeUtils.TimeUtils;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
-import java.nio.channels.Channel;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 
-import static com.gin.pixivcrawler.utils.TimeUtil.ZONE_ID;
+import static com.gin.pixivcrawler.utils.timeUtils.TimeUtils.DEFAULT_ZONE_ID;
+
 
 /**
  * 详情基础类
@@ -100,11 +101,11 @@ public class PixivDetailBase implements Serializable {
     }
 
     public String getCreateDateTime() {
-        return TimeUtil.second2String(createSeconds);
+        return TimeUtils.formatTime(createSeconds, TimeUnit.SECONDS);
     }
 
 
     static long getEpochSecond(String date) {
-        return ZonedDateTime.parse(date).withZoneSameInstant(ZONE_ID).toInstant().getEpochSecond();
+        return ZonedDateTime.parse(date).withZoneSameInstant(DEFAULT_ZONE_ID).toInstant().getEpochSecond();
     }
 }

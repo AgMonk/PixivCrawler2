@@ -5,13 +5,14 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.gin.pixivcrawler.utils.timeUtils.TimeUnit;
+import com.gin.pixivcrawler.utils.timeUtils.TimeUtils;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.gin.pixivcrawler.utils.TimeUtil.second2String;
 
 /**
  * 回复
@@ -58,12 +59,12 @@ public class Reply implements Serializable {
     }
 
     public String getPostDateTime() {
-        return second2String(postDateTimestamp);
+        return TimeUtils.formatTime(postDateTimestamp, TimeUnit.SECONDS);
     }
 
     public String getLastEditDatetime() {
         Long lastEdit = getLastEdit();
-        return lastEdit != null ? second2String(lastEdit) : null;
+        return lastEdit != null ? TimeUtils.formatTime(lastEdit, TimeUnit.SECONDS) : null;
     }
 
     @JsonIgnore

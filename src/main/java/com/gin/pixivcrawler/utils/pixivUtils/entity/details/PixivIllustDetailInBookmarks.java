@@ -1,14 +1,13 @@
 package com.gin.pixivcrawler.utils.pixivUtils.entity.details;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.gin.pixivcrawler.utils.TimeUtil;
+import com.gin.pixivcrawler.utils.timeUtils.TimeUnit;
+import com.gin.pixivcrawler.utils.timeUtils.TimeUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 收藏中的详情
@@ -32,7 +31,7 @@ public class PixivIllustDetailInBookmarks extends PixivDetailBase {
     String url;
 
     public String getUpdateDateTime() {
-        return TimeUtil.second2String(updateSeconds);
+        return TimeUtils.formatTime(updateSeconds, TimeUnit.SECONDS);
     }
 
     public void setUpdateDate(String updateDate) {

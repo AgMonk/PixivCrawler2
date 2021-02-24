@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.gin.pixivcrawler.utils.timeUtils.TimeUnit;
+import com.gin.pixivcrawler.utils.timeUtils.TimeUtils;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -14,8 +16,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static com.gin.pixivcrawler.utils.TimeUtil.DATE_FORMATTER;
-import static com.gin.pixivcrawler.utils.TimeUtil.second2String;
 
 /**
  * nga主题
@@ -134,19 +134,19 @@ public class NgaThread implements Serializable {
     }
 
     public String getLastModifyTime() {
-        return lastModify != null ? second2String(lastModify, DATE_FORMATTER) : null;
+        return lastModify != null ? TimeUtils.formatTime(lastModify, TimeUnit.SECONDS) : null;
     }
 
     public String getLastPostTime() {
-        return lastPost != null ? second2String(lastPost, DATE_FORMATTER) : null;
+        return lastPost != null ? TimeUtils.formatTime(lastPost, TimeUnit.SECONDS) : null;
     }
 
     public String getLastEditTime() {
-        return lastEdit != null ? second2String(lastEdit, DATE_FORMATTER) : null;
+        return lastEdit != null ? TimeUtils.formatTime(lastEdit, TimeUnit.SECONDS) : null;
     }
 
     public String getPostDateTime() {
-        return postDate != null ? second2String(postDate, DATE_FORMATTER) : null;
+        return postDate != null ? TimeUtils.formatTime(postDate, TimeUnit.SECONDS) : null;
     }
 
 
