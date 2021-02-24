@@ -58,7 +58,8 @@ public class FileUtils {
         List<String> successList = new ArrayList<>();
         List<String> delList = new ArrayList<>();
         List<String> failList = new ArrayList<>();
-        if (new File(targetPath).mkdirs()) {
+        File targetDir = new File(targetPath);
+        if (targetDir.mkdirs()) {
             log.info("创建目录:{}", targetPath);
         }
         for (String pid : pidList) {
@@ -108,6 +109,12 @@ public class FileUtils {
         }
         String msg = String.format("成功移动文件 %d 个 删除重复文件 %d 个 操作失败 %d 个", successList.size(), delList.size(), failList.size());
         log.info(msg);
+        File[] listFiles = targetDir.listFiles();
+        if (listFiles == null || listFiles.length == 0) {
+            if (targetDir.delete()) {
+                log.info("删除空目录 {}", targetPath);
+            }
+        }
         HashMap<String, List<String>> map = new HashMap<>();
         map.put("success", successList);
         map.put("del", delList);
