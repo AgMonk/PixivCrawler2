@@ -65,6 +65,12 @@ public class PixivIllustDetailServiceImpl extends ServiceImpl<PixivIllustDetailD
     }
 
     @Override
+    public void remove(long pid) {
+        detailCache.remove(pid);
+        removeById(pid);
+    }
+
+    @Override
     public PixivIllustDetail findOne(Serializable id) {
         log.debug("请求详情 pid = {} ", id);
         long start = System.currentTimeMillis();
