@@ -14,11 +14,11 @@ import com.gin.pixivcrawler.service.queryService.DownloadQueryService;
 import com.gin.pixivcrawler.service.queryService.SearchQueryService;
 import com.gin.pixivcrawler.utils.ariaUtils.Aria2Quest;
 import com.gin.pixivcrawler.utils.ariaUtils.Aria2UriOption;
+import com.gin.pixivcrawler.utils.fileUtils.FileUtils;
 import com.gin.pixivcrawler.utils.pixivUtils.PixivPost;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivBookmarks;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivCookie;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivSearchResults;
-import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivDetailBase;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetailInBookmarks;
 import lombok.extern.slf4j.Slf4j;
@@ -29,10 +29,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.io.File;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -62,6 +60,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     private final DetailQueryService detailQueryService;
     private final SearchQueryService searchQueryService;
     private final PixivSearchService pixivSearchService;
+    private final PixivFileService pixivFileService;
     private final ConfigService configService;
 
     private final HashMap<Long, AddTagQuery> addTagQueryMap = new HashMap<>();
@@ -81,7 +80,11 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                                      DownloadQueryService downloadQueryService,
                                      AddTagQueryService addTagQueryService,
                                      DetailQueryService detailQueryService,
-                                     SearchQueryService searchQueryService, PixivSearchService pixivSearchService, ConfigService configService, ThreadPoolTaskExecutor tagExecutor,
+                                     SearchQueryService searchQueryService,
+                                     PixivSearchService pixivSearchService,
+                                     PixivFileService pixivFileService,
+                                     ConfigService configService,
+                                     ThreadPoolTaskExecutor tagExecutor,
                                      ThreadPoolTaskExecutor detailExecutor,
                                      PixivCookieDao pixivCookieDao) {
         this.pixivIllustDetailService = pixivIllustDetailService;
@@ -92,6 +95,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         this.detailQueryService = detailQueryService;
         this.searchQueryService = searchQueryService;
         this.pixivSearchService = pixivSearchService;
+        this.pixivFileService = pixivFileService;
         this.configService = configService;
         this.tagExecutor = tagExecutor;
         this.detailExecutor = detailExecutor;
@@ -255,12 +259,12 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
             if (completedUrlList.size() > 0 && downloadQueryService.deleteByUrl(completedUrlList)) {
                 log.info("从数据库移除 {} 个已完成任务", completedUrlList.size());
             }
-            if (error3List.size()>0){
+            if (error3List.size() > 0) {
                 downloadQueryService.deleteByUrl(error3List);
                 for (String url : error3List) {
                     Matcher matcher = PIXIV_ILLUST_FULL_NAME.matcher(url);
                     if (matcher.find()) {
-                        long pid =Long.parseLong( matcher.group().split("_p")[0]);
+                        long pid = Long.parseLong(matcher.group().split("_p")[0]);
                         pixivIllustDetailService.remove(pid);
                         Config config = configService.getConfig();
                         detailQueryService.saveOne(new DetailQuery(pid,
@@ -271,7 +275,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                                 null));
                     }
                 }
-                log.info("重新请求作品详情 {}个",error3List.size());
+                log.info("重新请求作品详情 {}个", error3List.size());
             }
         }
     }
@@ -375,6 +379,14 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                             }
                         }
                     }
+//                    回调任务中有移动到未分类
+                    if (callbacks.contains(CALLBACK_TASK_MOVE_TO_UNTAGGED)) {
+                        TreeMap<String, File> map = pixivFileService.getFilesWithoutDetailMap();
+                        List<String> keys = map.keySet().stream().filter(p -> p.startsWith(detail.getId() + "_")).collect(Collectors.toList());
+                        FileUtils.moveFiles(map, keys, configService.getConfig().getRootPath() + "/未分类/");
+                    }
+
+
 //                    删除队列中的详情任务
                 } catch (RuntimeException e) {
                     if (e.getMessage().contains("删除")) {
@@ -401,6 +413,27 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         List<SearchKeyword> keywordList = pixivSearchService.findAll();
         searchQueryService.saveList(keywordList, getUserId(), 1);
         searchQueryService.saveList(keywordList, getUserId(), 2);
+    }
+
+    @Scheduled(cron = "10/30 * * * * ?")
+    public void findDetailOfOldFiles() {
+        TreeMap<String, File> filesWithoutDetailMap = pixivFileService.getFilesWithoutDetailMap();
+        List<Long> pidList = filesWithoutDetailMap.keySet().stream()
+                .map(pid -> pid.split("_p")[0]).map(Long::parseLong).distinct().collect(Collectors.toList());
+        List<Long> existsPid = detailQueryService.findList(pidList).stream().map(DetailQuery::getPid).collect(Collectors.toList());
+        pidList.removeAll(existsPid);
+        if (pidList.size() > 0) {
+            List<DetailQuery> tasks = pidList.stream().map(pid -> new DetailQuery(
+                    pid
+                    , getUserId()
+                    , "2.录入无详情文件"
+                    , 2
+                    , CALLBACK_TASK_MOVE_TO_UNTAGGED
+                    , null
+            )).collect(Collectors.toList());
+            log.info("发现无详情文件 {}个", pidList.size());
+            detailQueryService.saveList(tasks);
+        }
     }
 
     @Async("searchExecutor")

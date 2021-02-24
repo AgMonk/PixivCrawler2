@@ -17,7 +17,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class TaskExecutorConfig {
     @Bean
     public ThreadPoolTaskExecutor detailExecutor() {
-        return TasksUtil.getExecutor("detail", 10);
+        return TasksUtil.getExecutor("detail", 5);
     }
 
     @Bean

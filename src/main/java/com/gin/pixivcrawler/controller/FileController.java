@@ -35,7 +35,7 @@ public class FileController {
 
     @RequestMapping("getMap")
     public Res<TreeMap<String, String>> getFileMap(@RequestParam(defaultValue = "50") Integer limit) {
-        return Res.success(pixivFileService.getFileMap(limit));
+        return Res.success(pixivFileService.getUnarchivedFileMap(limit));
     }
 
     @RequestMapping("getTranslation")

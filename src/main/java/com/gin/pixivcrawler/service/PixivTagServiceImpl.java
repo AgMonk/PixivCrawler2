@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.gin.pixivcrawler.entity.ConstantValue.DELIMITER_COMMA;
+import static com.gin.pixivcrawler.entity.ConstantValue.DELIMITER_SPACE;
 
 /**
  * @author bx002
@@ -74,7 +75,7 @@ public class PixivTagServiceImpl extends ServiceImpl<PixivTagDao, PixivTag> impl
 
     @Override
     public void addTag(PixivIllustDetail detail, Long userId) {
-        String tagTranslatedString = translate(detail.getTagString(), " ");
+        String tagTranslatedString = translate(detail.getTagString(), DELIMITER_SPACE);
         Long pid = detail.getId();
         PixivIllustDetailService detailService = SpringContextUtil.getBean(PixivIllustDetailService.class);
         detailService.setIllustBookmarked(pid);

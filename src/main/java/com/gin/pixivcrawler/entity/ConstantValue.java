@@ -31,6 +31,10 @@ public class ConstantValue {
      */
     public static final String CALLBACK_TASK_SEARCH_DOWNLOAD = "搜索下载";
     /**
+     * 回调任务 :移动到未分类
+     */
+    public static final String CALLBACK_TASK_MOVE_TO_UNTAGGED = "移动到未分类";
+    /**
      * 详情类型：搜索
      */
     public static final String TYPE_OF_QUERY_SEARCH = "2.搜索下载:";

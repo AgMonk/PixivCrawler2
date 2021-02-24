@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,12 +42,15 @@ public class DetailQueryServiceImpl extends ServiceImpl<DetailQueryDao, DetailQu
     }
 
     @Override
-    public DetailQuery findOne(Serializable id) {
+    public DetailQuery findOne(long id) {
         return getById(id);
     }
 
     @Override
-    public List<DetailQuery> findList(Collection<Serializable> idCollection) {
+    public List<DetailQuery> findList(Collection<Long> idCollection) {
+        if (idCollection.size() == 0) {
+            return new ArrayList<>();
+        }
         return listByIds(idCollection);
     }
 
