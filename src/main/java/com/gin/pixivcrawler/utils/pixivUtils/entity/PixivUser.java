@@ -6,6 +6,8 @@ import lombok.Data;
 
 import java.io.Serializable;
 
+import static com.gin.pixivcrawler.entity.ConstantValue.USERNAME_SUFFIX;
+
 /**
  * Pixiv用户
  *
@@ -19,6 +21,15 @@ public class PixivUser implements Serializable {
     Long id;
     String account;
     String name;
+
+    public void setName(String name) {
+        for (String suffix : USERNAME_SUFFIX) {
+            if (name.contains(suffix)) {
+                name = name.substring(0, name.indexOf(suffix));
+            }
+        }
+        this.name = name;
+    }
 
     @Override
     public boolean equals(Object o) {

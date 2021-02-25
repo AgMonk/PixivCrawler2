@@ -1,6 +1,8 @@
 package com.gin.pixivcrawler.entity;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -83,5 +85,5 @@ public class ConstantValue {
      *
      * @date 2021/2/18 9:32
      */
-    public final static String[] USERNAME_SUFFIX = new String[]{"@", "＠", "|", "FANBOX", "fanbox", "仕事", "■"};
+    public final static List<String> USERNAME_SUFFIX = Arrays.asList("@", "＠", "|", "FANBOX", "fanbox", "仕事", "■");
 }
