@@ -135,7 +135,7 @@ public class PixivTagServiceImpl extends ServiceImpl<PixivTagDao, PixivTag> impl
         QueryWrapper<PixivIllustDetail> qw = new QueryWrapper<>();
         qw.select("tag_string");
         List<PixivIllustDetail> list = detailService.list(qw);
-        log.info("查询到 {} 个详情", list.size());
+        log.info("查询到 {} 个详情 开始统计tag", list.size());
         Map<String, Long> groupMap = list.stream()
                 .map(PixivIllustDetail::getTagString)
                 .flatMap(s -> Arrays.stream(s.split(DELIMITER_COMMA)))

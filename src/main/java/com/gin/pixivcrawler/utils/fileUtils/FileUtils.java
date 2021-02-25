@@ -26,8 +26,12 @@ public class FileUtils {
      * @date 2021/2/19 11:55
      */
     public static void listFiles(File rootDir, Map<String, File> map) {
-        File[] files = rootDir.listFiles();
-        if (files == null || files.length == 0) {
+        File[] fs = rootDir.listFiles();
+        if (fs == null) {
+            return;
+        }
+        List<File> files = Arrays.stream(fs).filter(f -> !f.getPath().endsWith(".zip")).collect(Collectors.toList());
+        if (files.size() == 0) {
             return;
         }
         for (File file : files) {
