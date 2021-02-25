@@ -82,6 +82,10 @@ public class PixivTagController {
                 t = t.replace(k, v);
             }
         }
+        t = t.replace("〔", "·")
+                .replace("〕", "")
+                .replace("・", "·")
+        ;
         return t;
     }
 }
