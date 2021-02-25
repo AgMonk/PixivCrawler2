@@ -8,4 +8,6 @@ import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivUser;
  * @date 2021/2/2 13:52
  */
 public interface PixivUserService extends BaseService<PixivUser> {
+
+    void refresh();
 }

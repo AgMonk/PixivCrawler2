@@ -42,8 +42,14 @@ public class PixivUserServiceImpl extends ServiceImpl<PixivUserDao, PixivUser> i
 
     @Override
     public List<PixivUser> findList(Collection<Serializable> idCollection) {
-        return null;
+        return listByIds(idCollection);
     }
 
 
+    @Override
+    public void refresh() {
+        List<PixivUser> list = list();
+        remove(null);
+        saveBatch(list);
+    }
 }

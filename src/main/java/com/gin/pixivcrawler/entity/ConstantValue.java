@@ -1,5 +1,6 @@
 package com.gin.pixivcrawler.entity;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -20,6 +21,11 @@ public class ConstantValue {
      * 空格分隔符
      */
     public static final String DELIMITER_SPACE = " ";
+    /**
+     * pixiv文件分隔符
+     */
+    public static final String DELIMITER_PIXIV_NAME = "_p";
+
     /**
      * 回调任务 ：添加标签
      */
@@ -86,4 +92,14 @@ public class ConstantValue {
      * @date 2021/2/18 9:32
      */
     public final static List<String> USERNAME_SUFFIX = Arrays.asList("@", "＠", "|", "FANBOX", "fanbox", "仕事", "■");
+
+    public static String replaceIllegalChar(Serializable s) {
+        String str = String.valueOf(s);
+        for (Map.Entry<String, String> entry : ILLEGAL_CHAR.entrySet()) {
+            String k = entry.getKey();
+            String v = entry.getValue();
+            str = str.replace(k, v);
+        }
+        return str;
+    }
 }

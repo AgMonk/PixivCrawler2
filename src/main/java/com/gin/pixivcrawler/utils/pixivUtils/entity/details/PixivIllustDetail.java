@@ -4,7 +4,6 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.gin.pixivcrawler.entity.ConstantValue;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTag;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTagsInDetail;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivUrls;
@@ -21,6 +20,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static com.gin.pixivcrawler.entity.ConstantValue.DELIMITER_COMMA;
+import static com.gin.pixivcrawler.entity.ConstantValue.DELIMITER_PIXIV_NAME;
 
 /**
  * Pixiv作品详情
@@ -116,8 +118,8 @@ public class PixivIllustDetail extends PixivDetailBase implements Serializable {
 
     public void setTagsInDetail(PixivTagsInDetail tagsInDetail) {
         this.tagsInDetail = tagsInDetail;
-        this.tagString = tagsInDetail.getTags().stream().map(PixivTag::getTag).collect(Collectors.joining(ConstantValue.DELIMITER_COMMA));
-        this.tagTransString = tagsInDetail.getTags().stream().map(PixivTag::getTransRaw).collect(Collectors.joining(ConstantValue.DELIMITER_COMMA));
+        this.tagString = tagsInDetail.getTags().stream().map(PixivTag::getTag).collect(Collectors.joining(DELIMITER_COMMA));
+        this.tagTransString = tagsInDetail.getTags().stream().map(PixivTag::getTransRaw).collect(Collectors.joining(DELIMITER_COMMA));
     }
 
     @JSONField(serialize = false)
@@ -127,7 +129,7 @@ public class PixivIllustDetail extends PixivDetailBase implements Serializable {
         }
         ArrayList<String> list = new ArrayList<>();
         for (int i = 0; i < pageCount; i++) {
-            list.add(DOMAIN + "/img-original" + IMG + urlPrefix + id + "_p" + i + urlSuffix);
+            list.add(DOMAIN + "/img-original" + IMG + urlPrefix + id + DELIMITER_PIXIV_NAME + i + urlSuffix);
         }
         return list;
     }

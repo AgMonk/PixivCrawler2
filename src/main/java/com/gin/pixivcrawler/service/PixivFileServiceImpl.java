@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
+import static com.gin.pixivcrawler.entity.ConstantValue.DELIMITER_PIXIV_NAME;
 import static com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail.PIXIV_ILLUST_FULL_NAME;
 import static com.gin.pixivcrawler.utils.requestUtils.RequestBase.timeCost;
 
@@ -26,8 +27,8 @@ public class PixivFileServiceImpl implements PixivFileService {
         Matcher m1 = PIXIV_ILLUST_FULL_NAME.matcher(o1);
         Matcher m2 = PIXIV_ILLUST_FULL_NAME.matcher(o2);
         if (m1.find() && m2.find()) {
-            String[] s1 = m1.group().split("_p");
-            String[] s2 = m2.group().split("_p");
+            String[] s1 = m1.group().split(DELIMITER_PIXIV_NAME);
+            String[] s2 = m2.group().split(DELIMITER_PIXIV_NAME);
             if (s1[0].equals(s2[0])) {
                 return Integer.parseInt(s1[1]) - Integer.parseInt(s2[1]);
             }
@@ -73,6 +74,7 @@ public class PixivFileServiceImpl implements PixivFileService {
         return map;
     }
 
+   
     @Override
     public HashMap<String, List<String>> archive(Collection<String> pidCollection) {
         String archivePath = configService.getConfig().getRootPath() + "/待归档/";

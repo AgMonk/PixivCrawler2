@@ -19,6 +19,8 @@ import com.gin.pixivcrawler.utils.pixivUtils.PixivPost;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivBookmarks;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivCookie;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivSearchResults;
+import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivUser;
+import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivDetailBase;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetailInBookmarks;
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +63,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     private final SearchQueryService searchQueryService;
     private final PixivSearchService pixivSearchService;
     private final PixivFileService pixivFileService;
+    private final PixivUserService pixivUserService;
     private final ConfigService configService;
 
     private final HashMap<Long, AddTagQuery> addTagQueryMap = new HashMap<>();
@@ -83,7 +86,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                                      SearchQueryService searchQueryService,
                                      PixivSearchService pixivSearchService,
                                      PixivFileService pixivFileService,
-                                     ConfigService configService,
+                                     PixivUserService pixivUserService, ConfigService configService,
                                      ThreadPoolTaskExecutor tagExecutor,
                                      ThreadPoolTaskExecutor detailExecutor,
                                      PixivCookieDao pixivCookieDao) {
@@ -96,6 +99,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         this.searchQueryService = searchQueryService;
         this.pixivSearchService = pixivSearchService;
         this.pixivFileService = pixivFileService;
+        this.pixivUserService = pixivUserService;
         this.configService = configService;
         this.tagExecutor = tagExecutor;
         this.detailExecutor = detailExecutor;
@@ -264,7 +268,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                 for (String url : error3List) {
                     Matcher matcher = PIXIV_ILLUST_FULL_NAME.matcher(url);
                     if (matcher.find()) {
-                        long pid = Long.parseLong(matcher.group().split("_p")[0]);
+                        long pid = Long.parseLong(matcher.group().split(DELIMITER_PIXIV_NAME)[0]);
                         pixivIllustDetailService.remove(pid);
                         Config config = configService.getConfig();
                         detailQueryService.saveOne(new DetailQuery(pid,
@@ -419,7 +423,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     public void findDetailOfOldFiles() {
         TreeMap<String, File> filesWithoutDetailMap = pixivFileService.getFilesWithoutDetailMap();
         List<Long> pidList = filesWithoutDetailMap.keySet().stream()
-                .map(pid -> pid.split("_p")[0]).map(Long::parseLong).distinct().collect(Collectors.toList());
+                .map(pid -> pid.split(DELIMITER_PIXIV_NAME)[0]).map(Long::parseLong).distinct().collect(Collectors.toList());
         List<Long> existsPid = detailQueryService.findList(pidList).stream().map(DetailQuery::getPid).collect(Collectors.toList());
         pidList.removeAll(existsPid);
         if (pidList.size() > 0) {
@@ -434,6 +438,61 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
             log.info("发现无详情文件 {}个", pidList.size());
             detailQueryService.saveList(tasks);
         }
+    }
+
+    /**
+     * 归档
+     * 文件名模板
+     * $uid$  用户id
+     * $uname$ 用户名
+     * $uac$ 用户账号
+     * $pid$ pid
+     * $bmc$ 收藏数
+     * $title$
+     * $tags$
+     */
+    @Scheduled(cron = "20/30 * * * * ?")
+    public void archive() {
+        HashMap<String, File> map = new HashMap<>();
+        String rootPath = configService.getConfig().getRootPath();
+        String template = configService.getConfig().getFilePathTemplate();
+        FileUtils.listFiles(new File(rootPath + "/待归档/"), map);
+        if (map.size() == 0) {
+            return;
+        }
+        List<PixivIllustDetail> details = pixivIllustDetailService.findList(
+                map.keySet().stream()
+                        .map(pid -> Long.parseLong(pid.split(DELIMITER_PIXIV_NAME)[0]))
+                        .distinct()
+                        .collect(Collectors.toList())
+        );
+        List<PixivUser> userList = pixivUserService.findList(details.stream().map(PixivDetailBase::getUserId).collect(Collectors.toList()));
+        details.forEach(detail -> {
+            PixivUser user = userList.stream().filter(u -> u.getId().equals(detail.getUserId())).findFirst().orElse(null);
+            map.keySet().stream()
+                    .filter(key -> key.startsWith(detail.getId() + DELIMITER_PIXIV_NAME))
+                    .forEach(pid -> {
+                        File file = map.get(pid);
+                        String oldPath = file.getPath();
+                        String newPath = rootPath + template + oldPath.substring(oldPath.lastIndexOf("."));
+                        if (user != null) {
+                            newPath = newPath
+                                    .replace("$uid$", replaceIllegalChar(user.getId()))
+                                    .replace("$uname$", replaceIllegalChar(user.getName()))
+                                    .replace("$uac$", replaceIllegalChar(user.getAccount()))
+                            ;
+                        }
+                        newPath = newPath
+                                .replace("$pid$", replaceIllegalChar(pid))
+                                .replace("$bmc$", replaceIllegalChar(detail.getBookmarkCount()))
+                                .replace("$title$", replaceIllegalChar(detail.getIllustTitle()))
+                                .replace("$tags$", replaceIllegalChar(pixivTagService.translate(detail.getTagString(), DELIMITER_COMMA)))
+                        ;
+                    });
+            ;
+
+        });
+
     }
 
     @Async("searchExecutor")
