@@ -105,6 +105,8 @@ public class PixivFileServiceImpl implements PixivFileService {
 
     public PixivFileServiceImpl(ConfigService configService) {
         this.configService = configService;
+        listFileMap();
+        listFilesWithoutDetailMap();
     }
 
 

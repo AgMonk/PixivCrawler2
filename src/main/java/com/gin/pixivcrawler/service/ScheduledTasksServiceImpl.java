@@ -326,9 +326,9 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         newDetailQuery.forEach(dq -> {
             Long pid = dq.getPid();
             String dqType = dq.getType();
+                List<String> callbacks = Arrays.asList(dq.getCallback().split(DELIMITER_COMMA));
             detailQueryMap.put(pid, dq);
             detailExecutor.execute(() -> {
-                List<String> callbacks = Arrays.asList(dq.getCallback().split(DELIMITER_COMMA));
                 try {
                     PixivIllustDetail detail = pixivIllustDetailService.findOne(pid);
                     detailQueryMap.remove(pid);
@@ -394,6 +394,13 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
 //                    删除队列中的详情任务
                 } catch (RuntimeException e) {
                     if (e.getMessage().contains("删除")) {
+//                        删除队列
+                        detailQueryService.deleteById(pid);
+                        if (callbacks.contains(CALLBACK_TASK_MOVE_TO_UNTAGGED)) {
+                            TreeMap<String, File> map = pixivFileService.getFilesWithoutDetailMap();
+                            List<String> keys = map.keySet().stream().filter(p -> p.startsWith(pid + "_")).collect(Collectors.toList());
+                            FileUtils.moveFiles(map, keys, configService.getConfig().getRootPath() + "/已删除作品/");
+                        }
 //                        作品被删除
                         Long bookmarkId = dq.getBookmarkId();
                         if (bookmarkId != null) {
