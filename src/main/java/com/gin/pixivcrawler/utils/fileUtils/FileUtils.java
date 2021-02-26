@@ -110,15 +110,17 @@ public class FileUtils {
                     failList.add(pid);
                 }
             }
+            File parentFile = file.getParentFile();
+            File[] listFiles = parentFile.listFiles();
+            if (listFiles == null || listFiles.length == 0) {
+                if (targetDir.delete()) {
+                    log.info("删除空目录 {}", targetPath);
+                }
+            }
         }
         String msg = String.format("成功移动文件 %d 个 删除重复文件 %d 个 操作失败 %d 个", successList.size(), delList.size(), failList.size());
         log.info(msg);
-        File[] listFiles = targetDir.listFiles();
-        if (listFiles == null || listFiles.length == 0) {
-            if (targetDir.delete()) {
-                log.info("删除空目录 {}", targetPath);
-            }
-        }
+
         HashMap<String, List<String>> map = new HashMap<>();
         map.put("success", successList);
         map.put("del", delList);
