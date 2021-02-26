@@ -326,7 +326,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         newDetailQuery.forEach(dq -> {
             Long pid = dq.getPid();
             String dqType = dq.getType();
-                List<String> callbacks = Arrays.asList(dq.getCallback().split(DELIMITER_COMMA));
+            List<String> callbacks = Arrays.asList(dq.getCallback().split(DELIMITER_COMMA));
             detailQueryMap.put(pid, dq);
             detailExecutor.execute(() -> {
                 try {
@@ -393,7 +393,8 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
 
 //                    删除队列中的详情任务
                 } catch (RuntimeException e) {
-                    if (e.getMessage().contains("删除")) {
+                    String message = e.getMessage();
+                    if (message != null && message.contains("删除")) {
 //                        删除队列
                         detailQueryService.deleteById(pid);
                         if (callbacks.contains(CALLBACK_TASK_MOVE_TO_UNTAGGED)) {

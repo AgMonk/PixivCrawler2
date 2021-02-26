@@ -133,14 +133,16 @@ public class PixivIllustDetailServiceImpl extends ServiceImpl<PixivIllustDetailD
     public List<PixivIllustDetail> findList(Collection<Serializable> idCollection) {
         List<PixivIllustDetail> oldDetails = listByIds(idCollection);
         oldDetails.forEach(detail -> detailCache.put(detail.getId(), detail));
+        HashMap<Long,Future<PixivIllustDetail>> taskMap = new HashMap<>();
+        idCollection.forEach(pid -> taskMap.put((Long) pid,detailExecutor.submit(() -> findOne(pid))));
 
-        List<Future<PixivIllustDetail>> tasks = new ArrayList<>();
-        idCollection.forEach(pid -> tasks.add(detailExecutor.submit(() -> findOne(pid))));
+//        List<Future<PixivIllustDetail>> tasks = new ArrayList<>();
+//        idCollection.forEach(pid -> tasks.add(detailExecutor.submit(() -> findOne(pid))));
 
         List<PixivIllustDetail> results = new ArrayList<>();
-        tasks.forEach(t -> {
+        taskMap.forEach((pid,future) -> {
             try {
-                PixivIllustDetail detail = t.get(120, TimeUnit.SECONDS);
+                PixivIllustDetail detail = future.get(120, TimeUnit.SECONDS);
                 if (detail != null) {
                     results.add(detail);
                 }
@@ -149,7 +151,7 @@ public class PixivIllustDetailServiceImpl extends ServiceImpl<PixivIllustDetailD
             } catch (ExecutionException e) {
                 e.printStackTrace();
             } catch (TimeoutException e) {
-                e.printStackTrace();
+               log.warn("请求超时 pid = {}",pid);
             }
         });
         return results;
