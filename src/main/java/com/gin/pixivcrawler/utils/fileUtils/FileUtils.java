@@ -113,15 +113,15 @@ public class FileUtils {
             File parentFile = file.getParentFile();
             File[] listFiles = parentFile.listFiles();
             if (listFiles == null || listFiles.length == 0) {
-                if (targetDir.delete()) {
-                    log.info("删除空目录 {}", targetPath);
+                if (parentFile.delete()) {
+                    log.info("删除空目录 {}", parentFile.getPath());
                 }
             }
         }
         String msg = String.format("成功移动文件 %d 个 删除重复文件 %d 个 操作失败 %d 个", successList.size(), delList.size(), failList.size());
         log.info(msg);
 
-        HashMap<String, List<String>> map = new HashMap<>();
+        HashMap<String, List<String>> map = new HashMap<>(3);
         map.put("success", successList);
         map.put("del", delList);
         map.put("fail", failList);
