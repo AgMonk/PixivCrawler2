@@ -3,6 +3,10 @@ package com.gin.pixivcrawler.utils.fileUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
@@ -30,7 +34,8 @@ public class FileUtils {
         if (fs == null) {
             return;
         }
-        List<File> files = Arrays.stream(fs).filter(f -> !f.getPath().endsWith(".zip")).collect(Collectors.toList());
+//        List<File> files = Arrays.stream(fs).filter(f -> !f.getPath().endsWith(".zip")).collect(Collectors.toList());
+        List<File> files = Arrays.asList(fs);
         if (files.size() == 0) {
             return;
         }
@@ -126,5 +131,39 @@ public class FileUtils {
         map.put("del", delList);
         map.put("fail", failList);
         return map;
+    }
+
+    /**
+     * 复制文件 
+     * @param source 源文件
+* @param dest 目标文件
+     * @return void
+     * @author Gin
+     * @date 2021/2/27 22:53
+     */
+    public static void copyFile(File source, File dest) throws IOException {
+        if (source.getPath().equals(dest.getPath())) {
+            return;
+        }
+        File parentFile = dest.getParentFile();
+        if (!parentFile.exists()) {
+            if (!parentFile.mkdirs()) {
+                log.error("创建文件夹失败 {}", parentFile.getPath());
+            }
+        }
+
+        FileChannel inputChannel = null;
+        FileChannel outputChannel = null;
+        try {
+            inputChannel = new FileInputStream(source).getChannel();
+            outputChannel = new FileOutputStream(dest).getChannel();
+            outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
+            log.info("复制文件 {} >> {}", source, dest);
+        } finally {
+            assert inputChannel != null;
+            inputChannel.close();
+            assert outputChannel != null;
+            outputChannel.close();
+        }
     }
 }

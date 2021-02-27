@@ -148,10 +148,13 @@ public class PixivIllustDetailServiceImpl extends ServiceImpl<PixivIllustDetailD
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                future.cancel(true);
             } catch (ExecutionException e) {
                 e.printStackTrace();
+                future.cancel(true);
             } catch (TimeoutException e) {
                log.warn("请求超时 pid = {}",pid);
+                future.cancel(true);
             }
         });
         return results;
