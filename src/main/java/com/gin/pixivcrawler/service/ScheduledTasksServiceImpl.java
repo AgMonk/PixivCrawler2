@@ -322,7 +322,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     @Scheduled(cron = "3/5 * * * * ?")
     public void detail() {
         int count = detailQueryMap.size() - configService.getConfig().getQueryMaxOfDetail();
-        if (count >=0) {
+        if (count <0) {
             return;
         }
         List<DetailQuery> newDetailQuery = detailQueryService
