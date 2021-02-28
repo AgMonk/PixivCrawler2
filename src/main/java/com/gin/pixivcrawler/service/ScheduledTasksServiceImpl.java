@@ -530,7 +530,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     @Scheduled(cron = "5 0/5 * * * ?")
     @Override
     public void autoSearch() {
-        if (scheduledTasksSwitch.getOrDefault("search", true)) {
+        if (!scheduledTasksSwitch.getOrDefault("search", true)) {
             return;
         }
         SearchQuery query = searchQueryService.findOne();
@@ -561,8 +561,8 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         return StatusReport.create()
                 .setUntaggedTotalCount(untaggedTotalCount)
                 .setAddTagQuery(addTagQueryMap.values())
-                .setDownloadQuery(downloadQueryService.findSortedList(99, null))
-                .setDetailQuery(detailQueryService.findSortedList(99, null))
+                .setDownloadQuery(downloadQueryService.findSortedList(999, null))
+                .setDetailQuery(detailQueryService.findSortedList(999, null))
                 .setSearchQuery(searchQueryService.findAll())
                 .setScheduledTasksSwitch(scheduledTasksSwitch)
                 ;
