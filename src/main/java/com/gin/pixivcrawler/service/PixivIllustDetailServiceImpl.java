@@ -95,7 +95,7 @@ public class PixivIllustDetailServiceImpl extends ServiceImpl<PixivIllustDetailD
             PixivIllustDetail newDetail = PixivPost.getIllustDetail(pid, null);
             if (newDetail != null) {
                 if (detail == null) {
-                    save(newDetail);
+                    saveOrUpdate(newDetail);
                 } else {
                     updateById(newDetail);
                 }

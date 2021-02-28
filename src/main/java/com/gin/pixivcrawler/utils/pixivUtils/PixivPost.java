@@ -14,8 +14,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.gin.pixivcrawler.utils.JsonUtil.printJson;
-
 /**
  * Pixiv请求工具类
  *
@@ -210,7 +208,7 @@ public class PixivPost {
         if (!json.getBoolean("error")) {
             return JSONObject.parseObject(json.getJSONObject("body").toJSONString(), clazz);
         }
-        printJson(json);
+//        printJson(json);
         PixivErrorException exception = new PixivErrorException();
         exception.setMessage(json.getString("message"));
         throw exception;

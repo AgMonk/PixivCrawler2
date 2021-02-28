@@ -44,6 +44,9 @@ public class PixivTagServiceImpl extends ServiceImpl<PixivTagDao, PixivTag> impl
 
     @Override
     public boolean saveList(Collection<PixivTag> entities) {
+        if (entities.size() == 0) {
+            return false;
+        }
         List<PixivTag> oldTags = listByIds(entities.stream().map(PixivTag::getTag).collect(Collectors.toList()));
         entities.removeAll(oldTags);
         if (entities.size() == 0) {

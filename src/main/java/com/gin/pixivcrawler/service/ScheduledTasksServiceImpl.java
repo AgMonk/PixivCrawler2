@@ -174,8 +174,12 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                 tasksFuture.add(pixivUserBookmarksService.get(getUserId(), tag, i * singleLimit, singleLimit));
             }
             for (Future<PixivBookmarks> future : tasksFuture) {
-                PixivBookmarks bookmark = future.get(60, TimeUnit.SECONDS);
-                bmkIllust.addAll(bookmark.getDetails());
+                try {
+                    PixivBookmarks bookmark = future.get(60, TimeUnit.SECONDS);
+                    bmkIllust.addAll(bookmark.getDetails());
+                } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                    future.cancel(true);
+                }
             }
         }
 //        在添加tag队列里的pid不进行请求
@@ -338,6 +342,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     public void detail() {
         int count = configService.getConfig().getQueryMaxOfDetail() - detailQueryMap.size();
         if (count == 0) {
+            log.info("{}", detailQueryMap.keySet());
             return;
         }
         List<DetailQuery> newDetailQuery = detailQueryService
