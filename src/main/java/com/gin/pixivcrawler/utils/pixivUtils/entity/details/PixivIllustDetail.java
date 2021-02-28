@@ -160,4 +160,5 @@ public class PixivIllustDetail extends PixivDetailBase implements Serializable {
         return checkSeconds != null ? TimeUtils.formatTime(checkSeconds, TimeUnit.SECONDS) : null;
     }
 
+
 }

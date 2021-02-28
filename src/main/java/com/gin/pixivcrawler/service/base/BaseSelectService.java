@@ -1,5 +1,7 @@
 package com.gin.pixivcrawler.service.base;
 
+import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivErrorException;
+
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
@@ -17,7 +19,7 @@ public interface BaseSelectService<T> {
      * @author bx002
      * @date 2021/2/2 13:54
      */
-    T findOne(Serializable id);
+    T findOne(Serializable id) throws PixivErrorException;
 
     /**
      * 查询多个实体

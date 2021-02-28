@@ -2,6 +2,7 @@ package com.gin.pixivcrawler.utils.pixivUtils;
 
 import com.alibaba.fastjson.JSONObject;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivBookmarks;
+import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivErrorException;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivSearchResults;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
 import com.gin.pixivcrawler.utils.requestUtils.GetRequest;
@@ -56,7 +57,7 @@ public class PixivPost {
      * @author bx002
      * @date 2021/2/2 16:45
      */
-    public static PixivIllustDetail getIllustDetail(long pid, String cookie) {
+    public static PixivIllustDetail getIllustDetail(long pid, String cookie) throws PixivErrorException {
         String msg = "请求作品详情 pid = {}";
         long start = System.currentTimeMillis();
         LOG.debug(msg, pid);
@@ -66,7 +67,7 @@ public class PixivPost {
         PixivIllustDetail body = null;
         try {
             body = getBody(result, PixivIllustDetail.class);
-        } catch (RuntimeException e) {
+        } catch (PixivErrorException e) {
             LOG.warn("pid = {} {}", pid, e.getMessage());
             throw e;
         }
@@ -102,7 +103,7 @@ public class PixivPost {
         PixivBookmarks body = null;
         try {
             body = getBody(result, PixivBookmarks.class);
-        } catch (RuntimeException e) {
+        } catch (PixivErrorException e) {
             LOG.warn("userId = {} {}", userId, e.getMessage());
         }
         LOG.info(msg + TIME_COST, userId, tag, offset, limit, RequestBase.timeCost(start));
@@ -169,7 +170,7 @@ public class PixivPost {
         PixivSearchResults body = null;
         try {
             body = getBody(result, PixivSearchResults.class);
-        } catch (RuntimeException e) {
+        } catch (PixivErrorException e) {
             LOG.warn("搜索错误 {} {}", keyword, e.getMessage());
         }
         return body;
@@ -200,7 +201,7 @@ public class PixivPost {
         return b;
     }
 
-    private static <T> T getBody(String result, Class<T> clazz) {
+    private static <T> T getBody(String result, Class<T> clazz) throws PixivErrorException {
         Matcher matcher = NUMBER.matcher(result);
         if (matcher.find()) {
             throw new RuntimeException(matcher.group());
@@ -210,6 +211,8 @@ public class PixivPost {
             return JSONObject.parseObject(json.getJSONObject("body").toJSONString(), clazz);
         }
         printJson(json);
-        throw new RuntimeException(json.getString("message"));
+        PixivErrorException exception = new PixivErrorException();
+        exception.setMessage(json.getString("message"));
+        throw exception;
     }
 }

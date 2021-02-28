@@ -1,6 +1,7 @@
 package com.gin.pixivcrawler.service;
 
 import com.gin.pixivcrawler.service.base.BaseSelectService;
+import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivErrorException;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
 
 import java.util.concurrent.Future;
@@ -18,7 +19,7 @@ public interface PixivIllustDetailService extends BaseSelectService<PixivIllustD
      * @author bx002
      * @date 2021/2/3 11:08
      */
-    Future<PixivIllustDetail> getDetail(long pid);
+    Future<PixivIllustDetail> getDetail(long pid) throws PixivErrorException;
 
     void setIllustBookmarked(long pid);
 
