@@ -31,18 +31,12 @@ public class Illustration implements Serializable {
         urlSuffix = fileName.substring(fileName.lastIndexOf("."));
     }
 
-<<<<<<< HEAD
-
     public void setUrlPrefix(String urlPrefix) {
         this.urlPrefix = urlPrefix.replace("https://i.pximg.net/img-original/img/", "");
         this.urlPrefix += this.urlPrefix.endsWith("/") ? "" : "/";
-=======
-    public void setUrlPrefix(String urlPrefix) {
-        this.urlPrefix = urlPrefix.replace("https://i.pximg.net/img-original/img/", "");
     }
 
     public static void main(String[] args) {
 
->>>>>>> origin/master
     }
 }
