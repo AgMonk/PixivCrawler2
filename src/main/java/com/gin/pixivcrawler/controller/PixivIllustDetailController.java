@@ -1,6 +1,7 @@
 package com.gin.pixivcrawler.controller;
 
 import com.gin.pixivcrawler.service.PixivIllustDetailService;
+import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivErrorException;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -8,7 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 /**
@@ -25,7 +25,7 @@ public class PixivIllustDetailController {
     }
 
     @RequestMapping("getDetail")
-    public PixivIllustDetail getDetail(Long pid) throws ExecutionException, InterruptedException {
+    public PixivIllustDetail getDetail(Long pid) throws ExecutionException, InterruptedException, PixivErrorException {
         return pixivIllustDetailService.getDetail(pid).get();
     }
 

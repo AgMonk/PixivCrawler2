@@ -16,10 +16,7 @@ import com.gin.pixivcrawler.utils.ariaUtils.Aria2Quest;
 import com.gin.pixivcrawler.utils.ariaUtils.Aria2UriOption;
 import com.gin.pixivcrawler.utils.fileUtils.FileUtils;
 import com.gin.pixivcrawler.utils.pixivUtils.PixivPost;
-import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivBookmarks;
-import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivCookie;
-import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivSearchResults;
-import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivUser;
+import com.gin.pixivcrawler.utils.pixivUtils.entity.*;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivDetailBase;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetailInBookmarks;
@@ -109,7 +106,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         this.detailExecutor = detailExecutor;
         this.pixivCookieDao = pixivCookieDao;
 
-        turnSwitch("search", true);
+        turnSwitch("search", false);
 
     }
 
@@ -416,7 +413,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
 
 
 //                    删除队列中的详情任务
-                } catch (RuntimeException e) {
+                } catch (PixivErrorException e) {
                     String message = e.getMessage();
                     if (message != null && message.contains("删除")) {
 //                        删除队列
@@ -431,8 +428,9 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                         if (bookmarkId != null) {
                             PixivCookie pixivCookie = pixivCookieDao.selectById(dq.getUserId());
                             deleteIllustBookmark(pixivCookie.getCookie(), pixivCookie.getTt(), bookmarkId);
-                            detailQueryService.deleteById(pid);
                         }
+                    } else {
+                        e.printStackTrace();
                     }
                 }
             });

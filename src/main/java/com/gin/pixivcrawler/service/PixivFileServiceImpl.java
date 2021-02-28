@@ -74,7 +74,7 @@ public class PixivFileServiceImpl implements PixivFileService {
         return map;
     }
 
-   
+
     @Override
     public HashMap<String, List<String>> archive(Collection<String> pidCollection) {
         String archivePath = configService.getConfig().getRootPath() + "/待归档/";
@@ -121,9 +121,9 @@ public class PixivFileServiceImpl implements PixivFileService {
         FileUtils.listFiles(new File(rootPath + "/未分类"), fileMapTemp);
         FileUtils.listFiles(new File(rootPath + "/搜索下载"), fileMapTemp);
         fileMap.clear();
-        fileMap.putAll(fileMapTemp);
+        copyMap(fileMapTemp, fileMap, 200);
+        log.info("待归档文件共有 {} 个 耗时:{}", fileMapTemp.size(), timeCost(start));
         fileMapTemp.clear();
-        log.info("待归档文件共有 {} 个 耗时:{}", fileMap.size(), timeCost(start));
     }
 
     @Scheduled(cron = "30 * * * * ?")
@@ -136,10 +136,21 @@ public class PixivFileServiceImpl implements PixivFileService {
         String rootPath = configService.getConfig().getRootPath();
         FileUtils.listFiles(new File(rootPath + "/无详情文件"), fileMapTemp2);
         filesWithoutDetailMap.clear();
-        filesWithoutDetailMap.putAll(fileMapTemp2);
+        copyMap(fileMapTemp2, filesWithoutDetailMap, 200);
+        log.info("无详情文件共有 {} 个 耗时:{}", fileMapTemp2.size(), timeCost(start));
         fileMapTemp2.clear();
-        log.info("无详情文件共有 {} 个 耗时:{}", filesWithoutDetailMap.size(), timeCost(start));
     }
 
-
+    private static <T> void copyMap(Map<String, T> source, Map<String, T> dest, int count) {
+        int c = 0;
+        for (Map.Entry<String, T> entry : source.entrySet()) {
+            String k = entry.getKey();
+            T v = entry.getValue();
+            c++;
+            dest.put(k, v);
+            if (c == count) {
+                break;
+            }
+        }
+    }
 }
