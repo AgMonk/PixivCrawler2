@@ -44,4 +44,9 @@ public class Res<T> {
     public static Res<Void> success() {
         return success(null);
     }
+
+    public static Res<Void> success(String message) {
+        return new Res<>(2000, message, null);
+    }
+
 }

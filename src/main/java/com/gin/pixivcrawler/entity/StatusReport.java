@@ -9,6 +9,7 @@ import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -25,6 +26,7 @@ public class StatusReport implements Serializable {
     List<DownloadQuery> downloadQuery;
     List<DetailQuery> detailQuery;
     List<SearchQuery> searchQuery;
+    HashMap<String, Boolean> scheduledTasksSwitch;
 
     public static StatusReport create() {
         return new StatusReport();

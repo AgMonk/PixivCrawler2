@@ -4,6 +4,7 @@ import com.gin.pixivcrawler.entity.StatusReport;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -14,6 +15,10 @@ import java.util.concurrent.TimeoutException;
  * @date 2021/2/3 11:28
  */
 public interface ScheduledTasksService {
+
+    HashMap<String, Boolean> getScheduledTasksSwitch();
+
+    void turnSwitch(String key, boolean status);
 
     void downloadUntagged() throws InterruptedException, ExecutionException, TimeoutException;
 

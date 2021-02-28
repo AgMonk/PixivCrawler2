@@ -76,6 +76,10 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
      * 未分类作品数量
      */
     private int untaggedTotalCount = 0;
+    /**
+     * 周期任务开关
+     */
+    private final HashMap<String, Boolean> scheduledTasksSwitch = new HashMap<>();
 
     public ScheduledTasksServiceImpl(PixivIllustDetailService pixivIllustDetailService,
                                      PixivUserBookmarksService pixivUserBookmarksService,
@@ -104,6 +108,9 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         this.tagExecutor = tagExecutor;
         this.detailExecutor = detailExecutor;
         this.pixivCookieDao = pixivCookieDao;
+
+        turnSwitch("search", true);
+
     }
 
     /**
@@ -126,6 +133,17 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
      */
     private String getRootPath() {
         return configService.getConfig().getRootPath();
+    }
+
+    @Override
+    public HashMap<String, Boolean> getScheduledTasksSwitch() {
+        return scheduledTasksSwitch;
+    }
+
+    @Override
+    public void turnSwitch(String key, boolean status) {
+        scheduledTasksSwitch.put(key, status);
+        log.info("周期任务开关 {} 设置为 {}", key, status);
     }
 
     /**
@@ -321,8 +339,8 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
      */
     @Scheduled(cron = "3/5 * * * * ?")
     public void detail() {
-        int count = detailQueryMap.size() - configService.getConfig().getQueryMaxOfDetail();
-        if (count <0) {
+        int count = configService.getConfig().getQueryMaxOfDetail() - detailQueryMap.size();
+        if (count == 0) {
             return;
         }
         List<DetailQuery> newDetailQuery = detailQueryService
@@ -391,7 +409,9 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                     if (callbacks.contains(CALLBACK_TASK_MOVE_TO_UNTAGGED)) {
                         TreeMap<String, File> map = pixivFileService.getFilesWithoutDetailMap();
                         List<String> keys = map.keySet().stream().filter(p -> p.startsWith(detail.getId() + "_")).collect(Collectors.toList());
-                        FileUtils.moveFiles(map, keys, configService.getConfig().getRootPath() + "/未分类/");
+                        if (keys.size() > 0) {
+                            FileUtils.moveFiles(map, keys, getRootPath() + "/未分类/");
+                        }
                     }
 
 
@@ -404,7 +424,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                         if (callbacks.contains(CALLBACK_TASK_MOVE_TO_UNTAGGED)) {
                             TreeMap<String, File> map = pixivFileService.getFilesWithoutDetailMap();
                             List<String> keys = map.keySet().stream().filter(p -> p.startsWith(pid + "_")).collect(Collectors.toList());
-                            FileUtils.moveFiles(map, keys, configService.getConfig().getRootPath() + "/已删除作品/");
+                            FileUtils.moveFiles(map, keys, getRootPath() + "/已删除作品/");
                         }
 //                        作品被删除
                         Long bookmarkId = dq.getBookmarkId();
@@ -466,7 +486,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     @Scheduled(cron = "20/30 * * * * ?")
     public void archive() {
         HashMap<String, File> map = new HashMap<>();
-        String rootPath = configService.getConfig().getRootPath();
+        String rootPath = getRootPath();
         String template = configService.getConfig().getFilePathTemplate();
         FileUtils.listFiles(new File(rootPath + "/待归档/"), map);
         if (map.size() == 0) {
@@ -489,19 +509,18 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                         String newPath = rootPath + template + oldPath.substring(oldPath.lastIndexOf("."));
                         if (user != null) {
                             newPath = newPath
-                                    .replace("$uid$", replaceIllegalChar(user.getId()))
+                                    .replace("$uid$", String.valueOf(user.getId()))
                                     .replace("$uname$", replaceIllegalChar(user.getName()))
                                     .replace("$uac$", replaceIllegalChar(user.getAccount()))
                             ;
                         }
                         newPath = newPath
-                                .replace("$pid$", replaceIllegalChar(pid))
-                                .replace("$bmc$", replaceIllegalChar(detail.getBookmarkCount()))
+                                .replace("$pid$", pid)
+                                .replace("$bmc$", String.valueOf(detail.getBookmarkCount()))
                                 .replace("$title$", replaceIllegalChar(detail.getIllustTitle()))
                                 .replace("$tags$", replaceIllegalChar(pixivTagService.translate(detail.getTagString(), DELIMITER_COMMA)))
                         ;
                     });
-            ;
 
         });
 
@@ -511,6 +530,9 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     @Scheduled(cron = "5 0/5 * * * ?")
     @Override
     public void autoSearch() {
+        if (scheduledTasksSwitch.getOrDefault("search", true)) {
+            return;
+        }
         SearchQuery query = searchQueryService.findOne();
         if (query == null) {
             return;
@@ -542,6 +564,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                 .setDownloadQuery(downloadQueryService.findSortedList(99, null))
                 .setDetailQuery(detailQueryService.findSortedList(99, null))
                 .setSearchQuery(searchQueryService.findAll())
+                .setScheduledTasksSwitch(scheduledTasksSwitch)
                 ;
     }
 }
