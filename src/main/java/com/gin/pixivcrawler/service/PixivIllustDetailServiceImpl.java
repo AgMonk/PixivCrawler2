@@ -1,9 +1,7 @@
 package com.gin.pixivcrawler.service;
 
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.gin.pixivcrawler.dao.PixivIllustDetailDao;
-import com.gin.pixivcrawler.entity.Illustration;
 import com.gin.pixivcrawler.utils.SpringContextUtil;
 import com.gin.pixivcrawler.utils.pixivUtils.PixivPost;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivErrorException;
@@ -11,7 +9,6 @@ import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTag;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivTagsInDetail;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.PixivUser;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail;
-import com.gin.pixivcrawler.utils.requestUtils.PostRequest;
 import com.gin.pixivcrawler.utils.requestUtils.RequestBase;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -105,32 +102,33 @@ public class PixivIllustDetailServiceImpl extends ServiceImpl<PixivIllustDetailD
                 saveUserAndTags(detail);
             }
         } catch (PixivErrorException e) {
-            String message = e.getMessage();
-            if (message != null && message.contains("删除")) {
-//            向旧系统请求
-                log.info("尝试向旧系统请求详情数据 pid = {}", id);
-                String result = String.valueOf(PostRequest.create().post("http://localhost:8888/ill/get?id=" + id));
-                Illustration detailFromOldSystem = JSONObject.parseObject(result, Illustration.class);
-                if (detailFromOldSystem != null) {
-                    log.info("获得旧系统数据 pid = {}", id);
-                    detail = new PixivIllustDetail();
-                    detail.setBookmarkCount(detailFromOldSystem.getBookmarkCount())
-                            .setCheckSeconds(System.currentTimeMillis() / 1000)
-                            .setTagString(detailFromOldSystem.getTag())
-                            .setUrlPrefix(detailFromOldSystem.getUrlPrefix())
-                            .setUrlSuffix(detailFromOldSystem.getUrlSuffix())
-                            .setUserId(detailFromOldSystem.getUserId())
-                            .setUserName(detailFromOldSystem.getUserName())
-                            .setId(detailFromOldSystem.getId())
-                            .setIllustTitle(detailFromOldSystem.getIllustTitle())
-                            .setIllustType(detailFromOldSystem.getIllustType())
-                            .setPageCount(detailFromOldSystem.getPageCount())
 
-                    ;
-                    saveOrUpdate(detail);
-                    saveUserAndTags(detail);
-                }
-            }
+//            String message = e.getMessage();
+//            if (message != null && message.contains("删除")) {
+////            向旧系统请求
+//                log.info("尝试向旧系统请求详情数据 pid = {}", id);
+//                String result = String.valueOf(PostRequest.create().post("http://localhost:8888/ill/get?id=" + id));
+//                Illustration detailFromOldSystem = JSONObject.parseObject(result, Illustration.class);
+//                if (detailFromOldSystem != null) {
+//                    log.info("获得旧系统数据 pid = {}", id);
+//                    detail = new PixivIllustDetail();
+//                    detail.setBookmarkCount(detailFromOldSystem.getBookmarkCount())
+//                            .setCheckSeconds(System.currentTimeMillis() / 1000)
+//                            .setTagString(detailFromOldSystem.getTag())
+//                            .setUrlPrefix(detailFromOldSystem.getUrlPrefix())
+//                            .setUrlSuffix(detailFromOldSystem.getUrlSuffix())
+//                            .setUserId(detailFromOldSystem.getUserId())
+//                            .setUserName(detailFromOldSystem.getUserName())
+//                            .setId(detailFromOldSystem.getId())
+//                            .setIllustTitle(detailFromOldSystem.getIllustTitle())
+//                            .setIllustType(detailFromOldSystem.getIllustType())
+//                            .setPageCount(detailFromOldSystem.getPageCount())
+//
+//                    ;
+//                    saveOrUpdate(detail);
+//                    saveUserAndTags(detail);
+//                }
+//            }
             if (detail == null) {
                 throw e;
             }
