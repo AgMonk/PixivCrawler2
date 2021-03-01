@@ -355,7 +355,6 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
             detailExecutor.execute(() -> {
                 try {
                     PixivIllustDetail detail = pixivIllustDetailService.findOne(pid);
-                    detailQueryMap.remove(pid);
                     if (detail == null) {
                         log.warn("详情请求失败 pid = {}", pid);
                         return;
@@ -438,6 +437,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                         e.printStackTrace();
                     }
                 }
+                detailQueryMap.remove(pid);
             });
         });
 

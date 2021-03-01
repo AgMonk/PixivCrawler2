@@ -127,7 +127,7 @@ public class PixivIllustDetailServiceImpl extends ServiceImpl<PixivIllustDetailD
                             .setPageCount(detailFromOldSystem.getPageCount())
 
                     ;
-                    save(detail);
+                    saveOrUpdate(detail);
                     saveUserAndTags(detail);
                 }
             }
