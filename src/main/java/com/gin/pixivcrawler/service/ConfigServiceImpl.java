@@ -34,6 +34,7 @@ public class ConfigServiceImpl extends ServiceImpl<ConfigDao, Config> implements
     public void updateConfig(Config config) {
         log.info("更新配置 {}", config);
         updateById(config);
+        this.currentConfig = config;
     }
 
 }
