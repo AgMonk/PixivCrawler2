@@ -42,6 +42,7 @@ import static com.gin.pixivcrawler.entity.ConstantValue.*;
 import static com.gin.pixivcrawler.service.PixivIllustDetailServiceImpl.MIN_BOOKMARK_COUNT;
 import static com.gin.pixivcrawler.utils.ariaUtils.Aria2Request.*;
 import static com.gin.pixivcrawler.utils.pixivUtils.PixivPost.deleteIllustBookmark;
+import static com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail.PIXIV_GIF_FULL_NAME;
 import static com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail.PIXIV_ILLUST_FULL_NAME;
 import static com.gin.pixivcrawler.utils.timeUtils.TimeUtils.DATE_FORMATTER;
 
@@ -370,11 +371,14 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
 //                    回调任务中有下载 下载
                     if (callbacks.contains(CALLBACK_TASK_DOWNLOAD)) {
                         for (String url : detail.getUrlList()) {
-                            Matcher matcher = PIXIV_ILLUST_FULL_NAME.matcher(url);
-                            if (matcher.find()) {
-                                String uuid = matcher.group();
+                            Matcher matcherIllust = PIXIV_ILLUST_FULL_NAME.matcher(url);
+                            Matcher matcherGif = PIXIV_GIF_FULL_NAME.matcher(url);
+                            boolean b1 = matcherIllust.find();
+                            boolean b2 = matcherGif.find();
+                            if (b1 || b2) {
+                                String uuid = b1 ? matcherIllust.group() : matcherGif.group();
                                 String path = getRootPath() + "/未分类";
-                                String fileName = url.substring(url.lastIndexOf("/") + 1);
+                                String fileName = b1 ? (url.substring(url.lastIndexOf("/") + 1)) : (matcherGif.group() + "0.zip");
                                 int priority = 5;
                                 downloadQueryService.saveOne(uuid,
                                         path,
@@ -444,6 +448,24 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         });
 
 
+    }
+
+    private void addPixivDownloadQuery(String url, String dirName, int priority, String queryType) {
+        Matcher matcherIllust = PIXIV_ILLUST_FULL_NAME.matcher(url);
+        Matcher matcherGif = PIXIV_GIF_FULL_NAME.matcher(url);
+        boolean b1 = matcherIllust.find();
+        boolean b2 = matcherGif.find();
+        if (b1 || b2) {
+            String uuid = b1 ? matcherIllust.group() : matcherGif.group();
+            String path = String.format("%s/%s", getRootPath(), dirName);
+            String fileName = b1 ? (url.substring(url.lastIndexOf("/") + 1)) : (matcherGif.group() + "0.zip");
+            downloadQueryService.saveOne(uuid,
+                    path,
+                    fileName,
+                    url,
+                    queryType,
+                    priority);
+        }
     }
 
     @Scheduled(cron = "0/30 * * * * ?")

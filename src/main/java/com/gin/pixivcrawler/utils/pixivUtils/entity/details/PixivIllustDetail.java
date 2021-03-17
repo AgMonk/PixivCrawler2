@@ -37,6 +37,7 @@ import static com.gin.pixivcrawler.entity.ConstantValue.DELIMITER_PIXIV_NAME;
 @TableName("t_illust_detail")
 public class PixivIllustDetail extends PixivDetailBase implements Serializable {
     public final static Pattern PIXIV_ILLUST_FULL_NAME = Pattern.compile("\\d+_p\\d+");
+    public final static Pattern PIXIV_GIF_FULL_NAME = Pattern.compile("\\d+_u");
 
     public final static String DOMAIN = "https://i.pximg.net";
 
