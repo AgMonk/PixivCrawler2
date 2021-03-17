@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -42,6 +43,7 @@ import static com.gin.pixivcrawler.service.PixivIllustDetailServiceImpl.MIN_BOOK
 import static com.gin.pixivcrawler.utils.ariaUtils.Aria2Request.*;
 import static com.gin.pixivcrawler.utils.pixivUtils.PixivPost.deleteIllustBookmark;
 import static com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail.PIXIV_ILLUST_FULL_NAME;
+import static com.gin.pixivcrawler.utils.timeUtils.TimeUtils.DATE_FORMATTER;
 
 /**
  * @author bx002
@@ -226,7 +228,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         int count = 0;
         for (DownloadQuery downloadQuery : sortedList) {
             Aria2UriOption option = new Aria2UriOption();
-            option.setDir(downloadQuery.getPath())
+            option.setDir(downloadQuery.getPath() + "/" + DATE_FORMATTER.format(ZonedDateTime.now()))
                     .setFileName(downloadQuery.getFileName())
                     .setReferer("*")
             ;

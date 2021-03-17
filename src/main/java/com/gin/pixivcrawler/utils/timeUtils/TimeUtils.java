@@ -16,6 +16,7 @@ import static com.gin.pixivcrawler.utils.timeUtils.TimeUnit.*;
  * @date 2021/2/23 10:29
  */
 public class TimeUtils {
+    public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     public static final DateTimeFormatter DEFAULT_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     public static final DateTimeFormatter DEFAULT_FULL_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
     public static final ZoneId DEFAULT_ZONE_ID = ZoneId.of("Asia/Shanghai");
