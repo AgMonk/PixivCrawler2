@@ -121,7 +121,7 @@ public class PixivFileServiceImpl implements PixivFileService {
         FileUtils.listFiles(new File(rootPath + "/未分类"), fileMapTemp);
         FileUtils.listFiles(new File(rootPath + "/搜索下载"), fileMapTemp);
         fileMap.clear();
-        copyMap(fileMapTemp, fileMap, 200);
+        copyMap(fileMapTemp, fileMap);
         log.info("待归档文件共有 {} 个 耗时:{}", fileMapTemp.size(), timeCost(start));
         fileMapTemp.clear();
     }
@@ -136,21 +136,16 @@ public class PixivFileServiceImpl implements PixivFileService {
         String rootPath = configService.getConfig().getRootPath();
         FileUtils.listFiles(new File(rootPath + "/无详情文件"), fileMapTemp2);
         filesWithoutDetailMap.clear();
-        copyMap(fileMapTemp2, filesWithoutDetailMap, 200);
+        copyMap(fileMapTemp2, filesWithoutDetailMap);
         log.info("无详情文件共有 {} 个 耗时:{}", fileMapTemp2.size(), timeCost(start));
         fileMapTemp2.clear();
     }
 
-    private static <T> void copyMap(Map<String, T> source, Map<String, T> dest, int count) {
-        int c = 0;
+    private static <T> void copyMap(Map<String, T> source, Map<String, T> dest) {
         for (Map.Entry<String, T> entry : source.entrySet()) {
             String k = entry.getKey();
             T v = entry.getValue();
-            c++;
             dest.put(k, v);
-            if (c == count) {
-                break;
-            }
         }
     }
 }

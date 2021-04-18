@@ -521,7 +521,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
      * $title$
      * $tags$
      */
-    @Scheduled(cron = "20/30 * * * * ?")
+//    @Scheduled(cron = "20/30 * * * * ?")
     public void archive() {
         HashMap<String, File> map = new HashMap<>();
         String rootPath = getRootPath();
