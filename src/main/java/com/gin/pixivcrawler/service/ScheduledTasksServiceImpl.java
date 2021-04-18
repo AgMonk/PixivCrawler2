@@ -118,6 +118,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
 
         turnSwitch("search", false);
 
+        downloadFanbox();
     }
 
     /**
@@ -201,15 +202,16 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
 
     public void downloadFanbox() {
         List<FanboxItem> itemList = fanboxItemService.listSupporting(20);
-        if (itemList != null || itemList.size() == 0) {
+        if (itemList == null || itemList.size() == 0) {
             return;
         }
-        for (int i = 0; i < itemList.size(); i++) {
-            FanboxItem fanboxItem = itemList.get(i);
+        log.info("fanbox 获取到新作品 {} 个", itemList.size());
+        for (FanboxItem fanboxItem : itemList) {
             List<FanboxItemsBodyImage> images = fanboxItem.getBody().getImages();
-            for (FanboxItemsBodyImage image : images) {
+            for (int i = 0; i < images.size(); i++) {
+                FanboxItemsBodyImage image = images.get(i);
                 downloadQueryService.saveOne(image.getId(),
-                        String.format("%s/fanbox/%s/%s/", getRootPath(), fanboxItem.getCreatorId(), fanboxItem.getTitle()),
+                        String.format("%s/fanbox/%s/[%d] %s", getRootPath(), fanboxItem.getCreatorId(), fanboxItem.getId(), fanboxItem.getTitle()),
                         String.format("%d - %s.%s", i, image.getId(), image.getExtension()),
                         image.getOriginalUrl(),
                         "fanbox",
@@ -245,7 +247,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         int count = 0;
         for (DownloadQuery downloadQuery : sortedList) {
             Aria2UriOption option = new Aria2UriOption();
-            option.setDir(downloadQuery.getPath() + "/" + DATE_FORMATTER.format(ZonedDateTime.now()))
+            option
                     .setFileName(downloadQuery.getFileName())
                     .setReferer("*")
             ;
@@ -253,7 +255,9 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                 FanboxCookie fanboxCookie = fanboxCookieDao.selectById(1);
                 String cookie = fanboxCookie.getCookie();
                 option.addHeader("Cookie", cookie);
+                option.setDir(downloadQuery.getPath());
             } else {
+                option.setDir(downloadQuery.getPath() + "/" + DATE_FORMATTER.format(ZonedDateTime.now()));
                 Integer mode = configService.getConfig().getDownloadMode();
                 switch (mode) {
                     case 2:
@@ -283,7 +287,10 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         List<Aria2Quest> stoppedQuest = tellStopped().getResult().stream()
                 .filter(quest -> {
                     String uri = quest.getFiles().get(0).getUris().get(0).getUri();
-                    return PIXIV_ILLUST_FULL_NAME.matcher(uri).find() || PIXIV_GIF_FULL_NAME.matcher(uri).find();
+                    return PIXIV_ILLUST_FULL_NAME.matcher(uri).find()
+                            || PIXIV_GIF_FULL_NAME.matcher(uri).find()
+                            || uri.contains("fanbox")
+                            ;
                 })
                 .collect(Collectors.toList());
         //        完成Url
@@ -291,7 +298,6 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                 .filter(Aria2Quest::isCompleted)
                 .map(quest -> quest.getFiles().get(0).getUris().get(0).getUri())
                 .collect(Collectors.toList());
-
         List<String> error3List = stoppedQuest.stream()
                 .filter(q -> q.getErrorCode() == 3)
                 .map(quest -> quest.getFiles().get(0).getUris().get(0).getUri())

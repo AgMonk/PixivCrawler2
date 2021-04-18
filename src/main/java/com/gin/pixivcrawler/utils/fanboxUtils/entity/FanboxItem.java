@@ -4,12 +4,14 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * @author bx002
  */
 @TableName("t_fanbox_item")
 @Data
-public class FanboxItem {
+public class FanboxItem implements Serializable {
     Long id;
     String title;
     /**
