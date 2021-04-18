@@ -262,7 +262,11 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     public void removeCompletedQueryInAria2() {
         //        获取停止任务
         List<Aria2Quest> stoppedQuest = tellStopped().getResult().stream()
-                .filter(quest -> PIXIV_ILLUST_FULL_NAME.matcher(quest.getFiles().get(0).getUris().get(0).getUri()).find()).collect(Collectors.toList());
+                .filter(quest -> {
+                    String uri = quest.getFiles().get(0).getUris().get(0).getUri();
+                    return PIXIV_ILLUST_FULL_NAME.matcher(uri).find() || PIXIV_GIF_FULL_NAME.matcher(uri).find();
+                })
+                .collect(Collectors.toList());
         //        完成Url
         List<String> completedUrlList = stoppedQuest.stream()
                 .filter(Aria2Quest::isCompleted)
@@ -288,9 +292,13 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
             if (error3List.size() > 0) {
                 downloadQueryService.deleteByUrl(error3List);
                 for (String url : error3List) {
-                    Matcher matcher = PIXIV_ILLUST_FULL_NAME.matcher(url);
-                    if (matcher.find()) {
-                        long pid = Long.parseLong(matcher.group().split(DELIMITER_PIXIV_NAME)[0]);
+                    Matcher matcherIllust = PIXIV_ILLUST_FULL_NAME.matcher(url);
+                    Matcher matcherGif = PIXIV_GIF_FULL_NAME.matcher(url);
+                    boolean b1 = matcherIllust.find();
+                    boolean b2 = matcherGif.find();
+                    if (b1 || b2) {
+                        String pidStr = b1 ? (matcherIllust.group().split(DELIMITER_PIXIV_NAME)[0]) : (matcherGif.group().split("_")[0]);
+                        long pid = Long.parseLong(pidStr);
                         pixivIllustDetailService.remove(pid);
                         Config config = configService.getConfig();
                         detailQueryService.saveOne(new DetailQuery(pid,
@@ -371,22 +379,24 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
 //                    回调任务中有下载 下载
                     if (callbacks.contains(CALLBACK_TASK_DOWNLOAD)) {
                         for (String url : detail.getUrlList()) {
-                            Matcher matcherIllust = PIXIV_ILLUST_FULL_NAME.matcher(url);
-                            Matcher matcherGif = PIXIV_GIF_FULL_NAME.matcher(url);
-                            boolean b1 = matcherIllust.find();
-                            boolean b2 = matcherGif.find();
-                            if (b1 || b2) {
-                                String uuid = b1 ? matcherIllust.group() : matcherGif.group();
-                                String path = getRootPath() + "/未分类";
-                                String fileName = b1 ? (url.substring(url.lastIndexOf("/") + 1)) : (matcherGif.group() + "0.zip");
-                                int priority = 5;
-                                downloadQueryService.saveOne(uuid,
-                                        path,
-                                        fileName,
-                                        url,
-                                        TYPE_OF_QUERY_UNTAGGED,
-                                        priority);
-                            }
+                            addPixivDownloadQuery(url, "未分类", 5, TYPE_OF_QUERY_UNTAGGED);
+
+//                            Matcher matcherIllust = PIXIV_ILLUST_FULL_NAME.matcher(url);
+//                            Matcher matcherGif = PIXIV_GIF_FULL_NAME.matcher(url);
+//                            boolean b1 = matcherIllust.find();
+//                            boolean b2 = matcherGif.find();
+//                            if (b1 || b2) {
+//                                String uuid = b1 ? matcherIllust.group() : matcherGif.group();
+//                                String path = getRootPath() + "/未分类";
+//                                String fileName = b1 ? (url.substring(url.lastIndexOf("/") + 1)) : (matcherGif.group() + "0.zip");
+//                                int priority = 5;
+//                                downloadQueryService.saveOne(uuid,
+//                                        path,
+//                                        fileName,
+//                                        url,
+//                                        TYPE_OF_QUERY_UNTAGGED,
+//                                        priority);
+//                            }
                         }
                     }
 //                回调任务中有 搜索下载
@@ -396,19 +406,20 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                             //                        设置为已收藏
                             pixivIllustDetailService.setIllustBookmarked(detail.getId());
                             for (String url : detail.getUrlList()) {
-                                Matcher matcher = PIXIV_ILLUST_FULL_NAME.matcher(url);
-                                if (matcher.find()) {
-                                    String uuid = matcher.group();
-                                    String path = getRootPath() + "/搜索下载/" + dqType.split(":")[1];
-                                    String fileName = url.substring(url.lastIndexOf("/") + 1);
-                                    int priority = 4;
-                                    downloadQueryService.saveOne(uuid,
-                                            path,
-                                            fileName,
-                                            url,
-                                            TYPE_OF_QUERY_SEARCH,
-                                            priority);
-                                }
+                                addPixivDownloadQuery(url, "搜索下载/" + dqType.split(":")[1], 4, TYPE_OF_QUERY_SEARCH);
+//                                Matcher matcher = PIXIV_ILLUST_FULL_NAME.matcher(url);
+//                                if (matcher.find()) {
+//                                    String uuid = matcher.group();
+//                                    String path = getRootPath() + "/搜索下载/" + dqType.split(":")[1];
+//                                    String fileName = url.substring(url.lastIndexOf("/") + 1);
+//                                    int priority = 4;
+//                                    downloadQueryService.saveOne(uuid,
+//                                            path,
+//                                            fileName,
+//                                            url,
+//                                            TYPE_OF_QUERY_SEARCH,
+//                                            priority);
+//                                }
                             }
                         }
                     }
