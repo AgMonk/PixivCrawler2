@@ -1,5 +1,6 @@
 package com.gin.pixivcrawler.utils.fanboxUtils.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -24,6 +25,7 @@ public class FanboxItem {
      */
     String updatedDatetime;
     String type;
+    @TableField(exist = false)
     FanboxItemsBody body;
     String creatorId;
 

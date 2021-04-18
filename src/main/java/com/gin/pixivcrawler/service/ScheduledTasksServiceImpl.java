@@ -1,5 +1,6 @@
 package com.gin.pixivcrawler.service;
 
+import com.gin.pixivcrawler.dao.FanboxCookieDao;
 import com.gin.pixivcrawler.dao.PixivCookieDao;
 import com.gin.pixivcrawler.entity.Config;
 import com.gin.pixivcrawler.entity.SearchKeyword;
@@ -14,6 +15,9 @@ import com.gin.pixivcrawler.service.queryService.DownloadQueryService;
 import com.gin.pixivcrawler.service.queryService.SearchQueryService;
 import com.gin.pixivcrawler.utils.ariaUtils.Aria2Quest;
 import com.gin.pixivcrawler.utils.ariaUtils.Aria2UriOption;
+import com.gin.pixivcrawler.utils.fanboxUtils.FanboxCookie;
+import com.gin.pixivcrawler.utils.fanboxUtils.entity.FanboxItem;
+import com.gin.pixivcrawler.utils.fanboxUtils.entity.FanboxItemsBodyImage;
 import com.gin.pixivcrawler.utils.fileUtils.FileUtils;
 import com.gin.pixivcrawler.utils.pixivUtils.PixivPost;
 import com.gin.pixivcrawler.utils.pixivUtils.entity.*;
@@ -48,7 +52,6 @@ import static com.gin.pixivcrawler.utils.timeUtils.TimeUtils.DATE_FORMATTER;
 
 /**
  * @author bx002
- * @date 2021/2/3 11:28
  */
 @Service
 @Slf4j
@@ -65,6 +68,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     private final PixivFileService pixivFileService;
     private final PixivUserService pixivUserService;
     private final ConfigService configService;
+    private final FanboxItemService fanboxItemService;
 
     private final HashMap<Long, AddTagQuery> addTagQueryMap = new HashMap<>();
     private final HashMap<Long, DetailQuery> detailQueryMap = new HashMap<>();
@@ -72,6 +76,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     private final ThreadPoolTaskExecutor tagExecutor;
     private final ThreadPoolTaskExecutor detailExecutor;
     private final PixivCookieDao pixivCookieDao;
+    private final FanboxCookieDao fanboxCookieDao;
     /**
      * 未分类作品数量
      */
@@ -91,9 +96,9 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                                      PixivSearchService pixivSearchService,
                                      PixivFileService pixivFileService,
                                      PixivUserService pixivUserService, ConfigService configService,
-                                     ThreadPoolTaskExecutor tagExecutor,
+                                     FanboxItemService fanboxItemService, ThreadPoolTaskExecutor tagExecutor,
                                      ThreadPoolTaskExecutor detailExecutor,
-                                     PixivCookieDao pixivCookieDao) {
+                                     PixivCookieDao pixivCookieDao, FanboxCookieDao fanboxCookieDao) {
         this.pixivIllustDetailService = pixivIllustDetailService;
         this.pixivUserBookmarksService = pixivUserBookmarksService;
         this.pixivTagService = pixivTagService;
@@ -105,9 +110,11 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         this.pixivFileService = pixivFileService;
         this.pixivUserService = pixivUserService;
         this.configService = configService;
+        this.fanboxItemService = fanboxItemService;
         this.tagExecutor = tagExecutor;
         this.detailExecutor = detailExecutor;
         this.pixivCookieDao = pixivCookieDao;
+        this.fanboxCookieDao = fanboxCookieDao;
 
         turnSwitch("search", false);
 
@@ -115,10 +122,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
 
     /**
      * 获取用户uid
-     *
      * @return long
-     * @author Gin
-     * @date 2021/2/17 14:56
      */
     private long getUserId() {
         return configService.getConfig().getUserId();
@@ -126,10 +130,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
 
     /**
      * 获取根目录
-     *
      * @return java.lang.String
-     * @author Gin
-     * @date 2021/2/17 15:00
      */
     private String getRootPath() {
         return configService.getConfig().getRootPath();
@@ -148,9 +149,6 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
 
     /**
      * 请求未分类作品，添加TAG，添加到下载队列
-     *
-     * @author bx002
-     * @date 2021/2/3 17:21
      */
     @Async("mainExecutor")
     @Override
@@ -200,11 +198,29 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         detailQueryService.saveList(detailQueries);
     }
 
+
+    public void downloadFanbox() {
+        List<FanboxItem> itemList = fanboxItemService.listSupporting(20);
+        if (itemList != null || itemList.size() == 0) {
+            return;
+        }
+        for (int i = 0; i < itemList.size(); i++) {
+            FanboxItem fanboxItem = itemList.get(i);
+            List<FanboxItemsBodyImage> images = fanboxItem.getBody().getImages();
+            for (FanboxItemsBodyImage image : images) {
+                downloadQueryService.saveOne(image.getId(),
+                        String.format("%s/fanbox/%s/%s/", getRootPath(), fanboxItem.getCreatorId(), fanboxItem.getTitle()),
+                        String.format("%d - %s.%s", i, image.getId(), image.getExtension()),
+                        image.getOriginalUrl(),
+                        "fanbox",
+                        10
+                );
+            }
+        }
+    }
+
     /**
      * 下载文件
-     *
-     * @author bx002
-     * @date 2021/2/4 16:37
      */
     @Scheduled(cron = "1/8 * * * * ?")
     public void addDownloadQuery2Aria2() {
@@ -233,16 +249,22 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                     .setFileName(downloadQuery.getFileName())
                     .setReferer("*")
             ;
-            Integer mode = configService.getConfig().getDownloadMode();
-            switch (mode) {
-                case 2:
-                    downloadQuery.setUrl(downloadQuery.getUrl().replace(DOMAIN_I_PXIMG_NET, NGINX_I_PIXIV_CAT));
-                    break;
-                case 1:
-                    option.setHttpsProxy("http://127.0.0.1:10809/");
-                    break;
-                default:
-                    break;
+            if ("fanbox".equals(downloadQuery.getType())) {
+                FanboxCookie fanboxCookie = fanboxCookieDao.selectById(1);
+                String cookie = fanboxCookie.getCookie();
+                option.addHeader("Cookie", cookie);
+            } else {
+                Integer mode = configService.getConfig().getDownloadMode();
+                switch (mode) {
+                    case 2:
+                        downloadQuery.setUrl(downloadQuery.getUrl().replace(DOMAIN_I_PXIMG_NET, NGINX_I_PIXIV_CAT));
+                        break;
+                    case 1:
+                        option.setHttpsProxy("http://127.0.0.1:10809/");
+                        break;
+                    default:
+                        break;
+                }
             }
 
             if (addUri(downloadQuery.getUrl(), option).getError() == null) {
@@ -254,9 +276,6 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
 
     /**
      * 移除停止和完成的任务
-     *
-     * @author bx002
-     * @date 2021/2/5 15:37
      */
     @Scheduled(cron = "0/10 * * * * ?")
     public void removeCompletedQueryInAria2() {
@@ -316,9 +335,6 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
 
     /**
      * 添加tag
-     *
-     * @author bx002
-     * @date 2021/2/4 16:37
      */
     @Scheduled(cron = "0/5 * * * * ?")
     public void addTag() {
@@ -345,9 +361,6 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
 
     /**
      * 获取详情
-     *
-     * @author bx002
-     * @date 2021/2/5 12:15
      */
     @Scheduled(cron = "3/5 * * * * ?")
     public void detail() {
