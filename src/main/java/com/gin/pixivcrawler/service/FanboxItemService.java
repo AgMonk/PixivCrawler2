@@ -16,5 +16,10 @@ public interface FanboxItemService extends IService<FanboxItem> {
      */
     List<FanboxItem> listSupporting(int limit);
 
-
+    /**
+     * 查询一个作品
+     * @param id  id
+     * @return 作品
+     */
+    FanboxItem findItem(long id);
 }

@@ -1,6 +1,7 @@
 package com.gin.pixivcrawler.utils.fanboxUtils;
 
 import com.alibaba.fastjson.JSONObject;
+import com.gin.pixivcrawler.utils.fanboxUtils.entity.FanboxItem;
 import com.gin.pixivcrawler.utils.fanboxUtils.entity.FanboxResponseBody;
 import com.gin.pixivcrawler.utils.requestUtils.GetRequest;
 
@@ -25,6 +26,22 @@ public class FanboxPost {
         return getArray(cookie, LIST_SUPPORTING + limit);
     }
 
+    public static FanboxItem findItem(String cookie,long id){
+        String result = GetRequest.create()
+                .addCookie(cookie)
+                .addReferer(REFERER)
+                .addOrigin(REFERER)
+                .get(POST_ID+id);
+        if (result != null) {
+            JSONObject json = JSONObject.parseObject(result);
+            JSONObject body = json.getJSONObject("body");
+            if (body != null) {
+                return JSONObject.parseObject(body.toJSONString(), FanboxItem.class);
+            }
+        }
+        return null;
+    }
+
     private static FanboxResponseBody getArray(String cookie, String url) {
         String result = GetRequest.create()
                 .addCookie(cookie)
@@ -41,22 +58,6 @@ public class FanboxPost {
         return null;
     }
 
-
-    public static JSONObject postId(String postId, String cookie) {
-        String url = POST_ID + postId;
-        String result = GetRequest.create()
-                .addCookie(cookie)
-                .addReferer(REFERER)
-                .addOrigin(REFERER)
-                .get(url);
-        if (result != null) {
-            JSONObject json = JSONObject.parseObject(result);
-            JSONObject body = json.getJSONObject("body");
-            if (body != null) {
-                return body;
-            }
-        }
-        return null;
+    public static void main(String[] args) {
     }
-
 }

@@ -45,4 +45,14 @@ public class FanboxItemServiceImpl extends ServiceImpl<FanboxItemDao, FanboxItem
         return items;
     }
 
+    @Override
+    public FanboxItem findItem(long id) {
+        FanboxCookie fanboxCookie = fanboxCookieDao.selectById(1);
+        String cookie = fanboxCookie.getCookie();
+
+        FanboxItem item = FanboxPost.findItem(cookie, id);
+        save(item);
+        return item;
+    }
+
 }

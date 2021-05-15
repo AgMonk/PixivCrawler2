@@ -76,7 +76,7 @@ public class FileController {
     }
     @RequestMapping("copy")
     public Res<Void> copy(String keyword){
-        TreeMap<String, String> fileMap = pixivFileService.getUnarchivedFileMap(99999);
+        TreeMap<String, String> fileMap = pixivFileService.getUnarchivedFileMap(999999);
         log.info("待检索文件 {}个",fileMap.size());
         Collection<Serializable> pidList = fileMap.keySet().stream()
                 .map(key -> Long.parseLong(key.split(DELIMITER_PIXIV_NAME)[0]))
