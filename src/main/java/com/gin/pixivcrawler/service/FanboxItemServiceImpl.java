@@ -35,7 +35,9 @@ public class FanboxItemServiceImpl extends ServiceImpl<FanboxItemDao, FanboxItem
         }
 
         List<FanboxItem> items = fanboxResponseBody.getItems();
-
+        if (items.size()==0) {
+            return null;
+        }
         List<Long> existsId = items.stream().map(FanboxItem::getId).collect(Collectors.toList());
         List<Long> idList = listByIds(existsId).stream().map(FanboxItem::getId).collect(Collectors.toList());
 
