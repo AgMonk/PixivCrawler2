@@ -17,6 +17,7 @@ import com.gin.pixivcrawler.utils.ariaUtils.Aria2Quest;
 import com.gin.pixivcrawler.utils.ariaUtils.Aria2UriOption;
 import com.gin.pixivcrawler.utils.fanboxUtils.FanboxCookie;
 import com.gin.pixivcrawler.utils.fanboxUtils.entity.FanboxItem;
+import com.gin.pixivcrawler.utils.fanboxUtils.entity.FanboxItemsBodyFile;
 import com.gin.pixivcrawler.utils.fanboxUtils.entity.FanboxItemsBodyImage;
 import com.gin.pixivcrawler.utils.fileUtils.FileUtils;
 import com.gin.pixivcrawler.utils.pixivUtils.PixivPost;
@@ -201,22 +202,63 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
 
 
     public void downloadFanbox() {
-        List<FanboxItem> itemList = fanboxItemService.listSupporting(20);
+        List<FanboxItem> itemList = fanboxItemService.listSupporting(300);
         if (itemList == null || itemList.size() == 0) {
             return;
         }
         log.info("fanbox 获取到新作品 {} 个", itemList.size());
         for (FanboxItem fanboxItem : itemList) {
+//            下载图片
             List<FanboxItemsBodyImage> images = fanboxItem.getBody().getImages();
-            for (int i = 0; i < images.size(); i++) {
-                FanboxItemsBodyImage image = images.get(i);
-                downloadQueryService.saveOne(image.getId(),
-                        String.format("%s/fanbox/%s/[%d] %s", getRootPath(), fanboxItem.getCreatorId(), fanboxItem.getId(), fanboxItem.getTitle()),
-                        String.format("%d - %s.%s", i, image.getId(), image.getExtension()),
-                        image.getOriginalUrl(),
-                        "fanbox",
-                        10
-                );
+            if (images!=null) {
+                for (int i = 0; i < images.size(); i++) {
+                    FanboxItemsBodyImage image = images.get(i);
+                    downloadQueryService.saveOne(image.getId(),
+                            String.format("%s/fanbox/%s/[%d] %s", getRootPath(), fanboxItem.getCreatorId(), fanboxItem.getId(), fanboxItem.getTitle()),
+                            String.format("%d - %s.%s", i, image.getId(), image.getExtension()),
+                            image.getOriginalUrl(),
+                            "fanbox",
+                            10
+                    );
+                }
+            }
+//           下载文件
+            List<FanboxItemsBodyFile> files = fanboxItem.getBody().getFiles();
+            if (files!=null) {
+                for (FanboxItemsBodyFile file : files) {
+                    downloadQueryService.saveOne(file.getId(),
+                            String.format("%s/fanbox/%s/[%d] %s", getRootPath(), fanboxItem.getCreatorId(), fanboxItem.getId(), fanboxItem.getTitle()),
+                            file.getName()+"."+file.getExtension(),
+                            file.getUrl(),
+                            "fanbox",
+                            10
+                    );
+                }
+            }
+
+            HashMap<String, FanboxItemsBodyImage> imageMap = fanboxItem.getBody().getImageMap();
+            if (imageMap!=null) {
+                imageMap.forEach((key,image)->{
+                    downloadQueryService.saveOne(image.getId(),
+                            String.format("%s/fanbox/%s/[%d] %s", getRootPath(), fanboxItem.getCreatorId(), fanboxItem.getId(), fanboxItem.getTitle()),
+                            String.format("%s.%s", image.getId(), image.getExtension()),
+                            image.getOriginalUrl(),
+                            "fanbox",
+                            10
+                    );
+                });
+            }
+            HashMap<String, FanboxItemsBodyFile> fileMap = fanboxItem.getBody().getFileMap();
+            if (fileMap!=null) {
+                fileMap.forEach((key,file)->{
+                    downloadQueryService.saveOne(file.getId(),
+                            String.format("%s/fanbox/%s/[%d] %s", getRootPath(), fanboxItem.getCreatorId(), fanboxItem.getId(), fanboxItem.getTitle()),
+                            file.getName()+"."+file.getExtension(),
+                            file.getUrl(),
+                            "fanbox",
+                            10
+                    );
+                });
             }
         }
     }

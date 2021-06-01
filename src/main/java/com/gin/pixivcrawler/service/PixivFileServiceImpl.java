@@ -1,5 +1,6 @@
 package com.gin.pixivcrawler.service;
 
+import com.gin.pixivcrawler.utils.TasksUtil;
 import com.gin.pixivcrawler.utils.fileUtils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -16,7 +17,6 @@ import static com.gin.pixivcrawler.utils.requestUtils.RequestBase.timeCost;
 
 /**
  * @author bx002
- * @date 2021/2/18 11:53
  */
 @Service
 @Slf4j
@@ -105,8 +105,11 @@ public class PixivFileServiceImpl implements PixivFileService {
 
     public PixivFileServiceImpl(ConfigService configService) {
         this.configService = configService;
-        listFileMap();
-        listFilesWithoutDetailMap();
+
+        TasksUtil.getExecutor("init", 1).execute(() -> {
+            listFileMap();
+            listFilesWithoutDetailMap();
+        });
     }
 
 
