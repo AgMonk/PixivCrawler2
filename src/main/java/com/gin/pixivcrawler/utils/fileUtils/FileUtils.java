@@ -2,32 +2,27 @@ package com.gin.pixivcrawler.utils.fileUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.nio.channels.FileChannel;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
+import static com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail.PIXIV_GIF_FULL_NAME;
 import static com.gin.pixivcrawler.utils.pixivUtils.entity.details.PixivIllustDetail.PIXIV_ILLUST_FULL_NAME;
 
 /**
  * 文件工具类
- *
  * @author bx002
- * @date 2021/2/24 9:00
  */
 @Slf4j
 public class FileUtils {
     /**
      * 列出目录下的所有文件
-     *
      * @param rootDir 根目录
      * @param map     保存文件的map
-     * @author bx002
-     * @date 2021/2/19 11:55
      */
     public static void listFiles(File rootDir, Map<String, File> map) {
         File[] fs = rootDir.listFiles();
@@ -43,9 +38,32 @@ public class FileUtils {
             if (file.isDirectory()) {
                 listFiles(file, map);
             } else {
+
+
                 Matcher matcher = PIXIV_ILLUST_FULL_NAME.matcher(file.getName());
-                if (matcher.find()) {
-                    map.put(matcher.group(), file);
+                Matcher matcherU = PIXIV_GIF_FULL_NAME.matcher(file.getName());
+                String key = matcher.find() ? matcher.group()
+                        : (matcherU.find() ? matcherU.group() : null);
+                if (key != null) {
+                        if (!file.getName().endsWith("zip")&&!verifyImage(file)) {
+                           moveFile(file,"F:/illust/未分类/损坏文件/","损坏");
+                            continue;
+                        }
+
+
+                    if (map.containsKey(key)) {
+                        File f2 = map.get(key);
+                        if (file.length() == f2.length()) {
+                            moveFile(file,"F:/illust/未分类/重复文件/","重复");
+                        } else {
+                            do {
+                                key += "_bak";
+                            } while (map.containsKey(key));
+                            map.put(key, file);
+                        }
+                    } else {
+                        map.put(key, file);
+                    }
                 }
             }
         }
@@ -53,13 +71,10 @@ public class FileUtils {
 
     /**
      * 移动文件
-     *
      * @param fileMap    文件map
      * @param keys       需要移动的文件key
      * @param targetPath 目标路径
      * @return java.util.HashMap<java.lang.String, java.util.List < java.lang.String>>
-     * @author bx002
-     * @date 2021/2/19 11:54
      */
     public static HashMap<String, List<String>> moveFiles(Map<String, File> fileMap, Collection<String> keys, String targetPath) {
         targetPath += targetPath.endsWith("/") ? "" : "/";
@@ -134,12 +149,10 @@ public class FileUtils {
     }
 
     /**
-     * 复制文件 
+     * 复制文件
      * @param source 源文件
-* @param dest 目标文件
+     * @param dest   目标文件
      * @return void
-     * @author Gin
-     * @date 2021/2/27 22:53
      */
     public static void copyFile(File source, File dest) throws IOException {
         if (source.getPath().equals(dest.getPath())) {
@@ -165,5 +178,74 @@ public class FileUtils {
             assert outputChannel != null;
             outputChannel.close();
         }
+    }
+
+    public static void splitFile2Dirs(File rootDir) {
+        TreeMap<String, File> map = new TreeMap<>(String::compareTo);
+        listFiles(rootDir, map);
+        int i = 0;
+        int count = 1;
+        int maxCount = 1000;
+        for (Map.Entry<String, File> entry : map.entrySet()) {
+            String k = entry.getKey();
+            File sourceFile = entry.getValue();
+
+            String groupPath = rootDir.getPath() + "/分组" + i;
+            moveFile(sourceFile, groupPath, "分组");
+            count++;
+            if (count == maxCount) {
+                i++;
+                count = 0;
+            }
+        }
+    }
+
+    /**
+     * 验证图片是否损坏
+     * @return boolean true 正常 false 损坏
+     */
+    public static boolean verifyImage(File file) {
+        try(FileInputStream fis = new FileInputStream(file);) {
+            BufferedImage sourceImg = ImageIO.read(fis);
+            if (sourceImg==null) {
+                return false;
+            }
+            int picWidth= sourceImg.getWidth();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    public static void moveFile(File source, String destPath, String reason) {
+        File dest = new File(destPath + "/" + source.getName());
+        moveFile(source, dest, reason);
+    }
+
+    public static void moveFile(File source, File dest, String reason) {
+        File parentDir = dest.getParentFile();
+        if (!parentDir.exists()) {
+            if (!parentDir.mkdirs()) {
+                throw new RuntimeException("文件夹创建失败:" + parentDir);
+            }
+        }
+        if (!source.renameTo(dest)) {
+            throw new RuntimeException(String.format("文件移动失败 %s -> %s", source, dest));
+        } else {
+            log.info("[{}] 移动文件成功 {} -> {}", reason, source.getName(), dest);
+        }
+    }
+
+    public static void main(String[] args) throws FileNotFoundException {
+        File rootDir = new File("F:\\illust\\未分类\\新建文件夹");
+        splitFile2Dirs(rootDir);
+//        listFiles(rootDir, new HashMap<>());
+//        boolean b = verifyImage(new File("F:/illust/未分类/[52781285_p0].jpg"));
+//        boolean b = verifyImage(new File("F:/illust/未分类/[43527469_p0].jpg"));
+//        System.out.println("b = " + b);
     }
 }
